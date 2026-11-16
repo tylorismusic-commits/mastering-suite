@@ -204,6 +204,38 @@ int main(int argc, char** argv) {
   check(finite, "host-driven processing stays finite");
   check(peak > 0.01f && peak < 2.0f, "output has a sane level");
 
+  // Mono output fallback: the right channel goes to a scratch buffer, so the
+  // single host channel must not be overwritten with the right input.
+  {
+    std::vector<float> mono(kFrames);
+    float* monoStereo[2] = {mono.data(), nullptr};
+    clap_audio_buffer_t monoBuf{};
+    monoBuf.data32 = monoStereo;
+    monoBuf.channel_count = 1;
+    for (uint32_t i = 0; i < kFrames; ++i) {
+      const double t = i / 48000.0;
+      left[i] = static_cast<float>(0.3 * std::sin(2.0 * M_PI * 220.0 * t));
+      right[i] = static_cast<float>(0.15 * std::sin(2.0 * M_PI * 330.0 * t));
+    }
+    clap_process_t proc{};
+    proc.frames_count = kFrames;
+    proc.audio_inputs = &inBuf;
+    proc.audio_outputs = &monoBuf;
+    proc.audio_inputs_count = 1;
+    proc.audio_outputs_count = 1;
+    proc.in_events = &inEvents;
+    proc.out_events = &outEvents;
+    plugin->process(plugin, &proc);
+    bool monoFinite = true;
+    float monoPeak = 0.0f;
+    for (uint32_t i = 0; i < kFrames; ++i) {
+      if (!std::isfinite(mono[i])) monoFinite = false;
+      monoPeak = std::max(monoPeak, std::fabs(mono[i]));
+    }
+    check(monoFinite && monoPeak > 0.01f,
+          "mono output falls back without losing the left channel");
+  }
+
   double value = 0.0;
   events.inputs.push_back(paramEvent(mastering::P_EQ_LOW_GAIN, 0.8));
   clap_input_events_t setIn{&events, inSize, inGet};

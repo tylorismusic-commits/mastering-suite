@@ -90,7 +90,6 @@ public:
     autoDb_ = 0.0f;
   }
 
-  float gainReductionDb() const noexcept { return grDb_; }
 
 private:
   void updateDetector(float level) noexcept {

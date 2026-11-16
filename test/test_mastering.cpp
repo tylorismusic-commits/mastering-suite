@@ -55,6 +55,24 @@ int main() {
     check(e.latencySamples() == 240, "limiter reports 5 ms latency");
   }
 
+  // Latency follows the host sample rate.
+  {
+    MasteringEngine e;
+    e.prepare(44100.0f);
+    check(e.latencySamples() == 220, "44.1 kHz latency is 220 samples");
+    e.prepare(96000.0f);
+    check(e.latencySamples() == 480, "96 kHz latency is 480 samples");
+    Meters m;
+    std::vector<float> l(kFrames), r(kFrames);
+    sine(l, r, 0, 0.2f, 1000.0f);
+    e.process(l.data(), r.data(), kFrames, m);
+    bool finite = true;
+    for (float v : l) {
+      if (!std::isfinite(v)) finite = false;
+    }
+    check(finite, "96 kHz processing stays finite");
+  }
+
   // Bus compressor produces gain reduction.
   {
     MasteringEngine e;

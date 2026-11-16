@@ -76,7 +76,6 @@ public:
     right = dryR + gate * (yR - dryR);
   }
 
-  float amount() const noexcept { return controls_.effect; }
 
 private:
   float rate_ = 48000.0f;

@@ -5,7 +5,6 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
-#include <X11/keysym.h>
 #include <cairo-xlib.h>
 #include <dlfcn.h>
 
@@ -14,7 +13,6 @@
 #include <chrono>
 #include <cmath>
 #include <condition_variable>
-#include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -22,6 +20,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "dsp/engine.hpp"
 #include "params.hpp"
@@ -255,8 +254,8 @@ struct Plugin {
   Shared shared;
   MasteringEngine engine;
   Editor editor{shared};
-  double sampleRate = 48000.0;
   Meters meters;
+  std::vector<float> monoRight;
   std::atomic<uint32_t> reportedLatency{0xffffffffu};
   std::atomic<bool> resetEngine{false};
 };
@@ -805,12 +804,13 @@ const clap_plugin_latency_t kLatencyExt = {latencyGet};
 bool pluginInit(const clap_plugin_t*) { return true; }
 void pluginDestroy(const clap_plugin_t* p) { delete self(p); }
 
-bool pluginActivate(const clap_plugin_t* p, double sampleRate, uint32_t,
-                    uint32_t) {
+bool pluginActivate(const clap_plugin_t* p, double sampleRate,
+                    uint32_t minFrames, uint32_t maxFrames) {
   Plugin* s = self(p);
-  s->sampleRate = sampleRate;
+  (void)minFrames;
   s->shared.sampleRate.store(static_cast<float>(sampleRate),
                              std::memory_order_relaxed);
+  s->monoRight.assign(std::max<uint32_t>(maxFrames, 512), 0.0f);
   s->engine.prepare(static_cast<float>(sampleRate));
   const uint32_t latency = static_cast<uint32_t>(s->engine.latencySamples());
   if (latency != s->reportedLatency.exchange(latency)) {
@@ -863,13 +863,14 @@ clap_process_status pluginProcess(const clap_plugin_t* p,
     return CLAP_PROCESS_CONTINUE;
   }
   float* left = outBuf.data32[0];
-  float* right =
-      outBuf.channel_count > 1 && outBuf.data32[1] ? outBuf.data32[1] : left;
   const float* inL = inBuf.data32[0];
   const float* inR =
       inBuf.channel_count > 1 && inBuf.data32[1] ? inBuf.data32[1] : inL;
-  if (left != inL) std::memcpy(left, inL, frames * sizeof(float));
-  if (right != inR) std::memcpy(right, inR, frames * sizeof(float));
+  const bool monoOut = outBuf.channel_count < 2 || !outBuf.data32[1];
+  float* right = monoOut ? s->monoRight.data() : outBuf.data32[1];
+  if (!right || (monoOut && s->monoRight.size() < frames)) {
+    return CLAP_PROCESS_CONTINUE;
+  }
 
   if (s->resetEngine.exchange(false, std::memory_order_relaxed)) {
     s->engine.reset();
@@ -882,7 +883,15 @@ clap_process_status pluginProcess(const clap_plugin_t* p,
     resetMeterAtomics(s->shared);
   }
   if (frames > 0) {
-    s->engine.process(left, right, static_cast<int>(frames), s->meters);
+    if (monoOut) {
+      if (left != inL) std::memcpy(left, inL, frames * sizeof(float));
+      std::memcpy(right, inR, frames * sizeof(float));
+      s->engine.process(left, right, static_cast<int>(frames), s->meters);
+    } else {
+      if (left != inL) std::memcpy(left, inL, frames * sizeof(float));
+      if (right != inR) std::memcpy(right, inR, frames * sizeof(float));
+      s->engine.process(left, right, static_cast<int>(frames), s->meters);
+    }
     s->shared.inPeakL.store(s->meters.inPeakL);
     s->shared.inPeakR.store(s->meters.inPeakR);
     s->shared.outPeakL.store(s->meters.outPeakL);

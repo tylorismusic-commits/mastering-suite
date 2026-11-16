@@ -14,7 +14,6 @@ enum class ColorModel : int {
 };
 
 constexpr int kSpectrumBins = 128;
-constexpr int kModuleCount = 5;
 
 struct EqControls {
   bool enabled = true;

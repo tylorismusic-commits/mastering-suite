@@ -12,31 +12,6 @@
 
 namespace mastering {
 
-// Static transfer for the colour display.
-inline float colorShape(int model, float drive, float character, float x) {
-  const float k = 1.0f + 5.0f * clamp01(drive);
-  float bias = 0.10f + 0.20f * clamp01(character);
-  switch (static_cast<ColorModel>(model)) {
-    case ColorModel::Console:
-      bias = 0.04f + 0.10f * character;
-      break;
-    case ColorModel::Bus:
-      bias = 0.02f + 0.08f * character;
-      break;
-    case ColorModel::Tape:
-      bias = 0.06f + 0.12f * character;
-      break;
-    case ColorModel::Transformer:
-      bias = 0.14f + 0.22f * character;
-      break;
-    default:
-      break;
-  }
-  const float tb = std::tanh(bias);
-  const float norm = std::max(k * (1.0f - tb * tb), 1.0e-6f);
-  return (std::tanh(k * x + bias) - tb) / norm;
-}
-
 // Single-band extraction of Patina's model core: drive, model shaping, tone,
 // mix and output level.  No crossovers or band-count UI live here.
 class ColorStage {

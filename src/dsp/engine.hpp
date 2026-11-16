@@ -59,11 +59,6 @@ public:
 
   void setControls(const Controls& c) noexcept {
     controls_ = c;
-    controls_.eq.enabled = c.eq.enabled;
-    controls_.comp.enabled = c.comp.enabled;
-    controls_.color.enabled = c.color.enabled;
-    controls_.density.enabled = c.density.enabled;
-    controls_.limiter.enabled = c.limiter.enabled;
     eq_.setControls(controls_.eq);
     comp_.setControls(controls_.comp);
     color_.setControls(controls_.color);
@@ -91,8 +86,6 @@ public:
     meterTpR_.reset();
     spectrum_.reset();
     corrState_ = 0.0f;
-    lastCompGr_ = 0.0f;
-    lastLimitGr_ = 0.0f;
     meterCounter_ = 0;
   }
 
@@ -109,8 +102,6 @@ public:
     outputSmooth_.snap();
     corrState_ = 0.0f;
     meterCounter_ = 0;
-    lastCompGr_ = 0.0f;
-    lastLimitGr_ = 0.0f;
   }
 
   void process(float* left, float* right, int frames, Meters& meters) noexcept {
@@ -177,8 +168,6 @@ public:
       sumR2 += static_cast<double>(yR) * yR;
     }
 
-    lastCompGr_ = compGr;
-    lastLimitGr_ = limitGr;
     const auto meterDb = [](float peak) {
       return std::max(hdsp::gainToDb(peak), -120.0f);
     };
@@ -188,8 +177,8 @@ public:
     meters.outPeakR = meterDb(outPeakR);
     meters.truePeakL = meterDb(tpL);
     meters.truePeakR = meterDb(tpR);
-    meters.compGr = lastCompGr_;
-    meters.limitGr = lastLimitGr_;
+    meters.compGr = compGr;
+    meters.limitGr = limitGr;
     const double denom = std::sqrt(sumL2 * sumR2);
     const float corr = denom > 1e-20
                            ? static_cast<float>(sumLR / denom)
@@ -254,8 +243,6 @@ private:
   ebur128_state* loudness_ = nullptr;
   std::vector<float> interleave_;
   float corrState_ = 0.0f;
-  float lastCompGr_ = 0.0f;
-  float lastLimitGr_ = 0.0f;
   int meterCounter_ = 0;
 };
 

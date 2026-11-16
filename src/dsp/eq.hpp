@@ -95,7 +95,6 @@ public:
            biquadGainDb(hpf_[0], hz, rate_);
   }
 
-  const EqControls& controls() const noexcept { return controls_; }
 
 private:
   float rate_ = 48000.0f;

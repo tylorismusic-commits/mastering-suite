@@ -367,7 +367,7 @@ void Panel::layout(const Shared& shared) {
     pill(P_LIMIT_TRUE_PEAK, 460, 570, 120, 26, "TRUE PEAK");
   }
 
-  pill(moduleOnParam(module), 870, 348, 100, 26, "ON");
+  pill(moduleOnParam(module), 875, 348, 90, 26, "ON");
   knob(P_INPUT, 920, 455, 26, "INPUT", sc(kScaleGain));
   knob(P_OUTPUT, 920, 560, 26, "OUTPUT", sc(kScaleGain));
 }

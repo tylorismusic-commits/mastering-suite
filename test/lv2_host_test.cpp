@@ -293,6 +293,26 @@ int main(int argc, char** argv) {
   check(values[meters + mastering::kLv2LufsI] <= -100.0f,
         "meter reset clears integrated LUFS");
 
+  // Mono output fallback: disconnect the right output and check the left
+  // channel still carries processed audio.
+  {
+    lilv_instance_connect_port(inst, mastering::kLv2OutR, nullptr);
+    for (uint32_t i = 0; i < frames; ++i) {
+      const float t = static_cast<float>(i) / 48000.0f;
+      inL[i] = 0.25f * std::sin(2.0f * 3.14159265f * 220.0f * t);
+      inR[i] = 0.12f * std::sin(2.0f * 3.14159265f * 330.0f * t);
+    }
+    lilv_instance_run(inst, frames);
+    bool monoFinite = true;
+    float monoPeak = 0.0f;
+    for (uint32_t i = 0; i < frames; ++i) {
+      if (!std::isfinite(outL[i])) monoFinite = false;
+      monoPeak = std::max(monoPeak, std::fabs(outL[i]));
+    }
+    check(monoFinite && monoPeak > 0.01f,
+          "mono LV2 output falls back without losing the left channel");
+  }
+
   lilv_instance_deactivate(inst);
   lilv_instance_free(inst);
   lilv_node_free(pluginUri);
