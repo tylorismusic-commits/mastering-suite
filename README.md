@@ -58,8 +58,8 @@ The install step writes `MasteringSuite.clap` and
 ## Tests
 
 - `mastering_dsp_test` — EQ unity, compressor gain reduction, limiter ceiling
-  and true-peak reduction, colour/density stability, LUFS and spectrum
-  population, latency.
+  and true-peak reduction, colour/density stability, EBU R128 calibration,
+  LUFS reset, spectrum population, latency.
 - `mastering_clap_host_test` — bundle load, factory, parameter/state
   round-trip, host text, audio processing, X11 editor embedding, click and
   drag interaction. Runs under `xvfb-run` when available.

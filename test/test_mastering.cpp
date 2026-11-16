@@ -187,6 +187,30 @@ int main() {
           "fresh instance starts at full gain (no fade-in)");
   }
 
+  // EBU R128 calibration: a full-scale 1 kHz sine in both channels reads
+  // about 0 LUFS (+3 dB from two channels, plus K-weighting).
+  {
+    MasteringEngine e;
+    e.prepare(kSr);
+    Controls c;
+    c.eq.enabled = false;
+    c.comp.enabled = false;
+    c.color.enabled = false;
+    c.density.enabled = false;
+    c.limiter.enabled = false;
+    e.setControls(c);
+    Meters m;
+    std::vector<float> l(kFrames), r(kFrames);
+    for (int b = 0; b < 1000; ++b) {
+      sine(l, r, b, 1.0f, 1000.0f);
+      e.process(l.data(), r.data(), kFrames, m);
+    }
+    check(std::fabs(m.lufsIntegrated) < 0.5f,
+          "integrated LUFS is calibrated on a full-scale stereo sine");
+    check(m.truePeakL > -1.0f && m.truePeakL < 1.5f,
+          "true-peak meter tracks a full-scale sine");
+  }
+
   std::printf("%d failure(s)\n", gFailures);
   return gFailures == 0 ? 0 : 1;
 }
