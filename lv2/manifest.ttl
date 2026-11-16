@@ -14,6 +14,6 @@
     ui:binary <mastering_suite_ui.so> ;
     rdfs:label "Mastering Suite UI" ;
     lv2:requiredFeature ui:parent ;
-    lv2:optionalFeature ui:scaleFactor , ui:idleInterface ;
+    lv2:optionalFeature ui:scaleFactor , ui:resize , ui:idleInterface ;
     lv2:extensionData ui:idleInterface ;
     rdfs:seeAlso <mastering-suite.ttl> .

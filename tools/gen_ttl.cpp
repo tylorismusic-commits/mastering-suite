@@ -333,7 +333,7 @@ std::string buildManifestTtl() {
   out << "    ui:binary <" << kUiBinary << "> ;\n";
   out << "    rdfs:label \"" << kName << " UI\" ;\n";
   out << "    lv2:requiredFeature ui:parent ;\n";
-  out << "    lv2:optionalFeature ui:scaleFactor , ui:idleInterface ;\n";
+  out << "    lv2:optionalFeature ui:scaleFactor , ui:resize , ui:idleInterface ;\n";
   out << "    lv2:extensionData ui:idleInterface ;\n";
   out << "    rdfs:seeAlso <mastering-suite.ttl> .\n";
   return out.str();
