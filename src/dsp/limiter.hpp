@@ -32,9 +32,16 @@ public:
   }
 
   void setControls(const LimiterControls& c) noexcept {
+    const bool wasEnabled = controls_.enabled;
     controls_ = c;
     ceiling_ = hdsp::dbToGain(limiterCeilingDb(c.ceiling));
     releaseCoeff_ = hdsp::timeCoeff(limiterReleaseMs(c.release), rate_);
+    if (c.enabled && !wasEnabled) {
+      gain_ = 1.0f;
+      grDb_ = 0.0f;
+      tpL_.reset();
+      tpR_.reset();
+    }
   }
 
   void reset() noexcept {

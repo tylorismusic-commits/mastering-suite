@@ -798,6 +798,8 @@ bool pluginActivate(const clap_plugin_t* p, double sampleRate, uint32_t,
                     uint32_t) {
   Plugin* s = self(p);
   s->sampleRate = sampleRate;
+  s->shared.sampleRate.store(static_cast<float>(sampleRate),
+                             std::memory_order_relaxed);
   s->engine.prepare(static_cast<float>(sampleRate));
   const uint32_t latency = static_cast<uint32_t>(s->engine.latencySamples());
   if (latency != s->reportedLatency.exchange(latency)) {

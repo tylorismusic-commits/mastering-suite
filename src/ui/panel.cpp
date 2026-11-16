@@ -204,9 +204,11 @@ void Panel::text(cairo_t* cr, const char* s, double x, double y, double size,
   cairo_set_source_rgb(cr, r, g, b);
   cairo_text_extents_t e;
   cairo_text_extents(cr, s, &e);
-  double tx = x;
-  if (align == 1) tx = x - e.x_advance * 0.5;
-  else if (align == 2) tx = x - e.x_advance;
+  // Centre and right-align on the ink extents, not the advance width, so
+  // labels sit optically centred over their controls.
+  double tx = x - e.x_bearing;
+  if (align == 1) tx = x - e.x_bearing - e.width * 0.5;
+  else if (align == 2) tx = x - e.x_bearing - e.width;
   cairo_move_to(cr, tx, y);
   cairo_show_text(cr, s);
 }
@@ -331,7 +333,7 @@ void Panel::layout(const Shared& shared) {
     knob(P_COMP_KNEE, 250, 560, 26, "KNEE", sc(kScaleKnee));
     knob(P_COMP_SC_HPF, 410, 560, 26, "SC HPF", sc(kScaleScHpf));
     knob(P_COMP_MIX, 570, 560, 26, "MIX", sc(kScaleMix));
-    pill(P_COMP_AUTO, 700, 548, 120, 24, "AUTO GAIN");
+    pill(P_COMP_AUTO, 670, 548, 120, 24, "AUTO GAIN");
   } else if (module == 2) {
     cycle(P_COLOR_MODEL, 690, 348, 145, 26, sc(kModelLabels));
     knob(P_COLOR_DRIVE, 250, 455, 30, "DRIVE", sc(kScaleDrive));
@@ -340,16 +342,16 @@ void Panel::layout(const Shared& shared) {
     knob(P_COLOR_MIX, 250, 560, 26, "MIX", sc(kScaleMix));
     knob(P_COLOR_LEVEL, 410, 560, 26, "LEVEL", sc(kScaleLevel));
   } else if (module == 3) {
-    knob(P_DENS_INPUT, 340, 455, 32, "INPUT", sc(kScaleGain));
+    knob(P_DENS_INPUT, 340, 455, 32, "IN TRIM", sc(kScaleGain));
     knob(P_DENS_EFFECT, 520, 455, 34, "DENSITY", sc(kScaleDensity));
-    knob(P_DENS_OUTPUT, 700, 455, 32, "OUTPUT", sc(kScaleGain));
+    knob(P_DENS_OUTPUT, 700, 455, 32, "OUT TRIM", sc(kScaleGain));
   } else {
     knob(P_LIMIT_CEILING, 340, 455, 32, "CEILING", sc(kScaleCeiling));
     knob(P_LIMIT_RELEASE, 520, 455, 32, "RELEASE", sc(kScaleLimitRelease));
-    pill(P_LIMIT_TRUE_PEAK, 650, 548, 120, 24, "TRUE PEAK");
+    pill(P_LIMIT_TRUE_PEAK, 460, 548, 120, 24, "TRUE PEAK");
   }
 
-  pill(moduleOnParam(module), 850, 348, 100, 26, "ON");
+  pill(moduleOnParam(module), 870, 348, 100, 26, "ON");
   knob(P_INPUT, 920, 455, 26, "INPUT", sc(kScaleGain));
   knob(P_OUTPUT, 920, 560, 26, "OUTPUT", sc(kScaleGain));
 }
@@ -601,7 +603,8 @@ void Panel::drawSpectrum(cairo_t* cr, const Shared& shared,
 
   if (curve) {
     MasteringEq eq;
-    eq.prepare(48000.0f);
+    const float rate = shared.sampleRate.load(std::memory_order_relaxed);
+    eq.prepare(rate > 0.0f ? rate : 48000.0f);
     eq.setControls(controlsFrom(shared).eq);
     setRgb(cr, {0.92, 0.58, 0.22}, 0.95);
     cairo_set_line_width(cr, 1.8);
@@ -826,8 +829,8 @@ void Panel::drawWidget(cairo_t* cr, const Widget& w, const Shared& shared,
       roundRect(cr, w.x + 0.5, w.y + 0.5, w.w - 1, w.h - 1, 4);
       cairo_stroke(cr);
       const Rgb tc = lit ? kSkin.tabTextOn : kSkin.tabTextOff;
-      text(cr, w.label, w.x + w.w * 0.5 - 8, w.y + w.h * 0.5 + 5, 12, 1,
-           tc.r, tc.g, tc.b);
+      text(cr, w.label, w.x + w.w * 0.5, w.y + w.h * 0.5 + 5, 12, 1, tc.r,
+           tc.g, tc.b);
       break;
     }
     case Kind::ModulePower: {
@@ -1175,8 +1178,10 @@ void Panel::drawPresetList(cairo_t* cr, const Shared& shared,
            i == state.presetIndex ? 1.0 : 0.86,
            i == state.presetIndex ? 1.0 : 0.88,
            i == state.presetIndex ? 1.0 : 0.90);
-      text(cr, p.category, kPresetX + kPresetW - 16, y + 15, 9.5, 2, 0.56,
-           0.60, 0.66);
+      text(cr, p.category, kPresetX + kPresetW - 16, y + 15, 9.5, 2,
+           i == state.presetIndex ? 0.88 : 0.56,
+           i == state.presetIndex ? 0.92 : 0.60,
+           i == state.presetIndex ? 0.96 : 0.66);
     }
     y += kListRow;
   }

@@ -10,12 +10,15 @@ from Comp Suite. See `third_party/hearth-dsp/THIRD_PARTY_NOTICES.md`.
 
 ## libebur128
 
-Loudness, loudness range and true-peak metering use `libebur128` 1.2.6 by
-Jiří Žůrek, MIT licensed. It is linked dynamically and must be installed on the
-target system (`libebur128.so.1`).
+Loudness, loudness range and true-peak metering use the vendored
+`libebur128` 1.2.6 source in `third_party/libebur128`, built into the plugin.
+It is MIT licensed and adds no runtime library dependency.
 
-Copyright (c) 2011-2020 Jiří Žůrek and contributors.
-MIT License: https://github.com/jiixyj/libebur128/blob/master/COPYING
+Copyright (c) 2011 Jan Kokemüller and contributors.
+See `third_party/libebur128/COPYING`.
+
+The internal `sys/queue.h` copy is BSD-2-Clause, copyright (c) 1991, 1993 The
+Regents of the University of California. See the header for the full notice.
 
 ## CLAP
 

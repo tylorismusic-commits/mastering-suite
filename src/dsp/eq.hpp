@@ -37,7 +37,11 @@ public:
   }
 
   void setControls(const EqControls& c) noexcept {
+    const bool wasEnabled = controls_.enabled;
     controls_ = c;
+    if (c.enabled && !wasEnabled) {
+      reset();
+    }
     if (!c.enabled) {
       return;
     }

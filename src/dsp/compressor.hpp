@@ -32,6 +32,7 @@ public:
   }
 
   void setControls(const CompControls& c) noexcept {
+    const bool wasEnabled = controls_.enabled;
     controls_ = c;
     thresholdDb_ = compThresholdDb(c.threshold);
     ratio_ = compRatio(c.ratio);
@@ -43,6 +44,9 @@ public:
       f.highPass(hp, 0.7071f, rate_);
     }
     mix_ = clamp01(c.mix);
+    if (c.enabled && !wasEnabled) {
+      reset();
+    }
   }
 
   // Processes one stereo frame, returns gain reduction in dB.
@@ -60,12 +64,9 @@ public:
     const float levelDb = hdsp::gainToDb(std::max(env_, 1.0e-9f));
     const float target = hdsp::gainReductionDb(levelDb, thresholdDb_, ratio_,
                                                kneeDb_);
-    if (target > grDb_) {
-      grDb_ += (target - grDb_) * (1.0f - attackCoeff_);
-    } else {
-      grDb_ += (target - grDb_) * (1.0f - releaseCoeff_);
-    }
-    grDb_ = std::max(grDb_, 0.0f);
+    // The detector envelope already carries the attack and release; applying
+    // them again here would double every time constant.
+    grDb_ = std::max(target, 0.0f);
 
     const float targetAuto = controls_.autoGain ? grDb_ : 0.0f;
     autoDb_ += (targetAuto - autoDb_) * (1.0f - autoCoeff_);

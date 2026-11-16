@@ -179,12 +179,15 @@ public:
 
     lastCompGr_ = compGr;
     lastLimitGr_ = limitGr;
-    meters.inPeakL = hdsp::gainToDb(inPeakL);
-    meters.inPeakR = hdsp::gainToDb(inPeakR);
-    meters.outPeakL = hdsp::gainToDb(outPeakL);
-    meters.outPeakR = hdsp::gainToDb(outPeakR);
-    meters.truePeakL = hdsp::gainToDb(tpL);
-    meters.truePeakR = hdsp::gainToDb(tpR);
+    const auto meterDb = [](float peak) {
+      return std::max(hdsp::gainToDb(peak), -120.0f);
+    };
+    meters.inPeakL = meterDb(inPeakL);
+    meters.inPeakR = meterDb(inPeakR);
+    meters.outPeakL = meterDb(outPeakL);
+    meters.outPeakR = meterDb(outPeakR);
+    meters.truePeakL = meterDb(tpL);
+    meters.truePeakR = meterDb(tpR);
     meters.compGr = lastCompGr_;
     meters.limitGr = lastLimitGr_;
     const double denom = std::sqrt(sumL2 * sumR2);

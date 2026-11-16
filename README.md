@@ -1,10 +1,8 @@
 # Mastering Suite
 
 A fixed-order stereo mastering chain with calibrated metering, built on
-`hearth-dsp` and the Comp Suite/Patina visual language.
-
-**Status: 0.1.0 preview.** The panel and DSP are under local review; the CLAP
-build is installable, LV2 follows after approval.
+`hearth-dsp` and the Comp Suite/Patina visual language. Ships as CLAP and LV2
+with a self-contained loudness analyser.
 
 ![Mastering Suite panel](docs/mastering-suite.png)
 
@@ -30,45 +28,66 @@ build is installable, LV2 follows after approval.
 
 - Input and output sample peak, per channel
 - Output true peak (dBTP) from a 4x detector
-- Integrated, short-term and momentary LUFS, plus LRA (EBU R128 via
-  `libebur128`)
+- Integrated, short-term and momentary LUFS, plus LRA (EBU R128, vendored
+  `libebur128` 1.2.6)
 - Stereo correlation
 - Compressor and limiter gain reduction
 - 128-bin log FFT spectrum with the live EQ curve
+- Meter reset button for the integrated/loudness history
 
 The display switches between **Spectrum**, **Loudness** and **GR** with the
 tabs inside the bezel. The header shows integrated LUFS at all times.
 
 ## Build
 
-Dependencies: CMake 3.16+, a C++17 compiler, Cairo, FreeType, X11,
-`libebur128` and the CLAP headers. `hearth-dsp` is a submodule.
+Dependencies: CMake 3.16+, a C/C++17 compiler, Cairo, FreeType, X11 and the
+LV2 headers. `lilv` is optional and only needed for the LV2 host test.
+`hearth-dsp` is a submodule; `libebur128` is vendored.
 
 ```sh
 git submodule update --init --recursive
-cmake -S . -B build -DCLAP_DIR="$HOME/.clap"
+cmake -S . -B build -DCLAP_DIR="$HOME/.clap" -DLV2_DIR="$HOME/.lv2"
 cmake --build build -j
 ctest --test-dir build --output-on-failure
 cmake --install build
 ```
 
-The install step writes `MasteringSuite.clap` and
-`MasteringSuite.resources/` into `~/.clap`.
+The install step writes `MasteringSuite.clap` with its resources into
+`~/.clap`, and `mastering-suite.lv2` into `~/.lv2`.
+
+## Release bundle
+
+```sh
+cmake --build build --target dist
+```
+
+This creates `build/dist/MasteringSuite-0.1.0-linux-x86_64.tar.gz` with:
+
+- `MasteringSuite.clap` and `MasteringSuite.resources/`
+- `mastering-suite.lv2/` (plugin, UI, TTL, presets, font)
+- `LICENSE`, `THIRD_PARTY_NOTICES.md`, `README.md`
+
+`dist-clap` and `dist-lv2` produce format-specific tarballs.
 
 ## Tests
 
 - `mastering_dsp_test` — EQ unity, compressor gain reduction, limiter ceiling
   and true-peak reduction, colour/density stability, EBU R128 calibration,
-  LUFS reset, spectrum population, latency.
+  LUFS reset, no fade-in on fresh load, spectrum population, latency.
 - `mastering_clap_host_test` — bundle load, factory, parameter/state
   round-trip, host text, audio processing, X11 editor embedding, click and
   drag interaction. Runs under `xvfb-run` when available.
+- `mastering_lv2_host` — lilv bundle discovery, port layout, range/default
+  consistency, presets, audio processing, meters, spectrum, reset and
+  latency.
+- `mastering_lv2_ui_host` — direct UI load, embedding, preferred size,
+  resize handshake, meter/spectrum port events, parameter writes and the
+  meter-reset pulse.
+- `mastering_ttl` — fails if the committed TTL files drift from the code.
 
 ## Notes
 
-- Format: CLAP first; LV2 is planned once the preview is approved.
-- `libebur128` is a runtime dependency. The release notes must state this, or
-  the analyser must be vendored before a self-contained bundle ships.
+- Formats: CLAP and LV2/X11, built from one DSP and panel source.
 - No Sonnox Inflator, FabFilter Pro-L 2 or Tokyo Dawn SlickEQ code, curves or
   product names are used. The colour and density stages are original shapes.
 - See `THIRD_PARTY_NOTICES.md` for licences and attribution.

@@ -288,6 +288,7 @@ public:
   }
 
   std::atomic<bool> meterReset{false};
+  std::atomic<float> sampleRate{48000.0f};
 
   std::atomic<float> inPeakL;
   std::atomic<float> inPeakR;
