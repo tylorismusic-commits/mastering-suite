@@ -68,7 +68,6 @@ struct Controls {
   bool enabled = true;
   float input = 0.5f;
   float output = 0.5f;
-  float oversample = 0.0f;
   EqControls eq;
   CompControls comp;
   ColorControls color;

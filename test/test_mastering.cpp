@@ -170,6 +170,23 @@ int main() {
     check(after.lufsIntegrated <= -100.0f, "meter reset clears integrated LUFS");
   }
 
+  // The chain must not fade in when the instance is freshly prepared.
+  {
+    MasteringEngine e;
+    e.prepare(kSr);
+    Controls c;
+    c.limiter.enabled = false;
+    e.setControls(c);
+    Meters m;
+    std::vector<float> l(kFrames), r(kFrames);
+    sine(l, r, 0, 0.25f, 1000.0f);
+    e.process(l.data(), r.data(), kFrames, m);
+    const double expected =
+        0.25 * std::sin(2.0 * 3.141592653589793 * 1000.0 * 10.0 / kSr);
+    check(std::fabs(l[250] - expected) < 0.01,
+          "fresh instance starts at full gain (no fade-in)");
+  }
+
   std::printf("%d failure(s)\n", gFailures);
   return gFailures == 0 ? 0 : 1;
 }

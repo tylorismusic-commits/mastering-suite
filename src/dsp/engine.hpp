@@ -48,11 +48,13 @@ public:
     spectrum_.prepare(baseRate_);
     inputSmooth_.setTime(15.0f, baseRate_);
     outputSmooth_.setTime(15.0f, baseRate_);
-    inputSmooth_.snap();
-    outputSmooth_.snap();
     interleave_.assign(2 * 4096, 0.0f);
     reset();
     setControls(controls_);
+    inputSmooth_.snap();
+    outputSmooth_.snap();
+    color_.snap();
+    density_.snap();
   }
 
   void setControls(const Controls& c) noexcept {
