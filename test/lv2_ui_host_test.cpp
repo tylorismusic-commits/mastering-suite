@@ -268,8 +268,8 @@ int main(int argc, char** argv) {
     sendButton(dpy, window, 520, 90, true);
     sendButton(dpy, window, 520, 90, false);
     idle->idle(handle);
-    sendButton(dpy, window, 772, 561, true);
-    sendButton(dpy, window, 772, 561, false);
+    sendButton(dpy, window, 716, 561, true);
+    sendButton(dpy, window, 716, 561, false);
     idle->idle(handle);
     bool wroteClip = false;
     for (const Written& e : writes.events) {

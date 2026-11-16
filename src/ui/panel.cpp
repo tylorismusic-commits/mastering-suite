@@ -330,41 +330,41 @@ void Panel::layout(const Shared& shared) {
   }
 
   if (module == 0) {
-    knob(P_EQ_LOW_GAIN, 250, 455, 30, "LOW GAIN", sc(kScaleGain));
-    knob(P_EQ_LOW_FREQ, 410, 455, 30, "LOW FREQ", sc(kScaleFreqLow));
-    knob(P_EQ_MID_GAIN, 570, 455, 30, "MID GAIN", sc(kScaleGain));
-    knob(P_EQ_MID_FREQ, 730, 455, 30, "MID FREQ", sc(kScaleFreqMid));
-    knob(P_EQ_MID_Q, 250, 560, 26, "MID Q", sc(kScaleQ));
-    knob(P_EQ_HIGH_GAIN, 410, 560, 26, "HIGH GAIN", sc(kScaleGain));
-    knob(P_EQ_HIGH_FREQ, 570, 560, 26, "HIGH FREQ", sc(kScaleFreqHigh));
-    knob(P_EQ_HPF, 730, 560, 26, "HPF", sc(kScaleHpf));
+    knob(P_EQ_LOW_GAIN, 220, 455, 30, "LOW GAIN", sc(kScaleGain));
+    knob(P_EQ_LOW_FREQ, 400, 455, 30, "LOW FREQ", sc(kScaleFreqLow));
+    knob(P_EQ_MID_GAIN, 580, 455, 30, "MID GAIN", sc(kScaleGain));
+    knob(P_EQ_MID_FREQ, 760, 455, 30, "MID FREQ", sc(kScaleFreqMid));
+    knob(P_EQ_MID_Q, 220, 560, 26, "MID Q", sc(kScaleQ));
+    knob(P_EQ_HIGH_GAIN, 400, 560, 26, "HIGH GAIN", sc(kScaleGain));
+    knob(P_EQ_HIGH_FREQ, 580, 560, 26, "HIGH FREQ", sc(kScaleFreqHigh));
+    knob(P_EQ_HPF, 760, 560, 26, "HPF", sc(kScaleHpf));
   } else if (module == 1) {
-    knob(P_COMP_THRESHOLD, 250, 455, 30, "THRESHOLD", sc(kScaleThreshold));
-    knob(P_COMP_RATIO, 410, 455, 30, "RATIO", sc(kRatioLabels));
-    knob(P_COMP_ATTACK, 570, 455, 30, "ATTACK", sc(kScaleAttack));
-    knob(P_COMP_RELEASE, 730, 455, 30, "RELEASE", sc(kScaleRelease));
-    knob(P_COMP_KNEE, 250, 560, 26, "KNEE", sc(kScaleKnee));
-    knob(P_COMP_SC_HPF, 410, 560, 26, "SC HPF", sc(kScaleScHpf));
-    knob(P_COMP_MIX, 570, 560, 26, "MIX", sc(kScaleMix));
-    pill(P_COMP_AUTO, 670, 548, 120, 24, "AUTO GAIN");
+    knob(P_COMP_THRESHOLD, 220, 455, 30, "THRESHOLD", sc(kScaleThreshold));
+    knob(P_COMP_RATIO, 400, 455, 30, "RATIO", sc(kRatioLabels));
+    knob(P_COMP_ATTACK, 580, 455, 30, "ATTACK", sc(kScaleAttack));
+    knob(P_COMP_RELEASE, 760, 455, 30, "RELEASE", sc(kScaleRelease));
+    knob(P_COMP_KNEE, 220, 560, 26, "KNEE", sc(kScaleKnee));
+    knob(P_COMP_SC_HPF, 400, 560, 26, "SC HPF", sc(kScaleScHpf));
+    knob(P_COMP_MIX, 580, 560, 26, "MIX", sc(kScaleMix));
+    pill(P_COMP_AUTO, 700, 548, 120, 24, "AUTO GAIN");
   } else if (module == 2) {
-    cycle(P_COLOR_MODEL, 690, 348, 145, 26, sc(kModelLabels));
-    knob(P_COLOR_DRIVE, 250, 455, 30, "DRIVE", sc(kScaleDrive));
-    knob(P_COLOR_CHARACTER, 410, 455, 30, "CHARACTER", sc(kScaleCharacter));
-    knob(P_COLOR_TONE, 570, 455, 30, "TONE", sc(kScaleTone));
-    knob(P_COLOR_MIX, 250, 560, 26, "MIX", sc(kScaleMix));
-    knob(P_COLOR_LEVEL, 410, 560, 26, "LEVEL", sc(kScaleLevel));
-    option(P_COLOR_CLIP, 0, 690, 548, 52, 26, "OFF");
-    option(P_COLOR_CLIP, 1, 746, 548, 52, 26, "SOFT");
-    option(P_COLOR_CLIP, 2, 802, 548, 52, 26, "HARD");
+    cycle(P_COLOR_MODEL, 680, 348, 120, 26, sc(kModelLabels));
+    knob(P_COLOR_DRIVE, 300, 455, 30, "DRIVE", sc(kScaleDrive));
+    knob(P_COLOR_CHARACTER, 520, 455, 30, "CHARACTER", sc(kScaleCharacter));
+    knob(P_COLOR_TONE, 740, 455, 30, "TONE", sc(kScaleTone));
+    knob(P_COLOR_MIX, 300, 560, 26, "MIX", sc(kScaleMix));
+    knob(P_COLOR_LEVEL, 520, 560, 26, "LEVEL", sc(kScaleLevel));
+    option(P_COLOR_CLIP, 0, 660, 548, 52, 26, "OFF");
+    option(P_COLOR_CLIP, 1, 716, 548, 52, 26, "SOFT");
+    option(P_COLOR_CLIP, 2, 772, 548, 52, 26, "HARD");
   } else if (module == 3) {
-    knob(P_DENS_INPUT, 340, 455, 32, "IN TRIM", sc(kScaleGain));
-    knob(P_DENS_EFFECT, 520, 455, 34, "DENSITY", sc(kScaleDensity));
-    knob(P_DENS_OUTPUT, 700, 455, 32, "OUT TRIM", sc(kScaleGain));
+    knob(P_DENS_INPUT, 300, 480, 38, "IN TRIM", sc(kScaleGain));
+    knob(P_DENS_EFFECT, 520, 480, 40, "DENSITY", sc(kScaleDensity));
+    knob(P_DENS_OUTPUT, 740, 480, 38, "OUT TRIM", sc(kScaleGain));
   } else {
-    knob(P_LIMIT_CEILING, 340, 455, 32, "CEILING", sc(kScaleCeiling));
-    knob(P_LIMIT_RELEASE, 520, 455, 32, "RELEASE", sc(kScaleLimitRelease));
-    pill(P_LIMIT_TRUE_PEAK, 460, 548, 120, 24, "TRUE PEAK");
+    knob(P_LIMIT_CEILING, 380, 480, 38, "CEILING", sc(kScaleCeiling));
+    knob(P_LIMIT_RELEASE, 660, 480, 38, "RELEASE", sc(kScaleLimitRelease));
+    pill(P_LIMIT_TRUE_PEAK, 460, 570, 120, 26, "TRUE PEAK");
   }
 
   pill(moduleOnParam(module), 870, 348, 100, 26, "ON");
@@ -382,9 +382,9 @@ void Panel::draw(cairo_t* cr, Shared& shared, const PanelState& state) {
   drawBody(cr);
   drawDisplay(cr, shared, state, 0);
   drawLeds(cr, shared);
-  drawLevelMeter(cr, 44, 150, 26, 352, state.inLevelL, state.inLevelR, -60.0,
+  drawLevelMeter(cr, 44, 150, 26, 380, state.inLevelL, state.inLevelR, -60.0,
                  0.0, false);
-  drawLevelMeter(cr, 974, 150, 26, 352, state.outLevelL, state.outLevelR,
+  drawLevelMeter(cr, 974, 150, 26, 380, state.outLevelL, state.outLevelR,
                  -60.0, 3.0, true);
 
   static const char* const kCaptions[5] = {
@@ -397,7 +397,7 @@ void Panel::draw(cairo_t* cr, Shared& shared, const PanelState& state) {
       std::clamp(static_cast<int>(shared.get(P_MODULE) + 0.5), 0, 4);
   text(cr, kCaptions[module], 190, 366, 11.5, 0, 0.72, 0.76, 0.80);
   if (module == 2) {
-    text(cr, "CLIP", 772, 540, 9.5, 1, 0.72, 0.76, 0.80);
+    text(cr, "CLIP", 742, 540, 9.5, 1, 0.72, 0.76, 0.80);
   }
 
   for (const Widget& w : widgets_) drawWidget(cr, w, shared, state, 0);
@@ -731,12 +731,12 @@ void Panel::drawGr(cairo_t* cr, const PanelState& state, int /*model*/,
 }
 
 void Panel::drawLeds(cairo_t* cr, const Shared& shared) const {
-  roundRect(cr, 866, 144, 28, 186, 3);
+  roundRect(cr, 874, 144, 26, 186, 3);
   setRgb(cr, {0.04, 0.05, 0.06}, 0.75);
   cairo_fill(cr);
   setRgb(cr, {0.0, 0.0, 0.0}, 0.5);
   cairo_set_line_width(cr, 1.0);
-  roundRect(cr, 866.5, 144.5, 27, 185, 3);
+  roundRect(cr, 874.5, 144.5, 25, 185, 3);
   cairo_stroke(cr);
 
   const float db = std::max(shared.inPeakL.load(), shared.inPeakR.load());
@@ -748,7 +748,7 @@ void Panel::drawLeds(cairo_t* cr, const Shared& shared) const {
     if (i < 4) c = {0.27, 0.88, 0.42};
     else if (i < 8) c = {0.96, 0.82, 0.29};
     else c = {1.0, 0.30, 0.24};
-    roundRect(cr, 872, y, 16, 10, 2);
+    roundRect(cr, 879, y, 16, 10, 2);
     if (i < lit) setRgb(cr, c);
     else setRgb(cr, mix(c, {0.05, 0.05, 0.05}, 0.80));
     cairo_fill(cr);
