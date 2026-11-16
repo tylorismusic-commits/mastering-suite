@@ -382,9 +382,9 @@ void Panel::draw(cairo_t* cr, Shared& shared, const PanelState& state) {
   drawBody(cr);
   drawDisplay(cr, shared, state, 0);
   drawLeds(cr, shared);
-  drawLevelMeter(cr, 48, 150, 16, 352, state.inLevelL, state.inLevelR, -60.0,
+  drawLevelMeter(cr, 44, 150, 26, 352, state.inLevelL, state.inLevelR, -60.0,
                  0.0, false);
-  drawLevelMeter(cr, 976, 150, 16, 352, state.outLevelL, state.outLevelR,
+  drawLevelMeter(cr, 974, 150, 26, 352, state.outLevelL, state.outLevelR,
                  -60.0, 3.0, true);
 
   static const char* const kCaptions[5] = {
@@ -763,20 +763,25 @@ void Panel::drawLevelMeter(cairo_t* cr, double x, double y, double w, double h,
   cairo_fill(cr);
   const double l = clamp01((dbL - minDb) / (maxDb - minDb));
   const double r = clamp01((dbR - minDb) / (maxDb - minDb));
-  const double bh = (h - 10) * 0.5;
+  constexpr double inset = 4.0;
+  constexpr double gap = 3.0;
+  const double barW = (w - 2.0 * inset - gap) * 0.5;
+  const double barTop = y + 5.0;
+  const double barH = h - 10.0;
   const double greenTop = clamp01((-12.0 - minDb) / (maxDb - minDb));
   const double yellowTop = clamp01((-3.0 - minDb) / (maxDb - minDb));
   for (int ch = 0; ch < 2; ++ch) {
     const double lv = ch == 0 ? l : r;
-    const double by = y + 5 + ch * (bh + 2);
-    roundRect(cr, x + 4, by, w - 8, bh, 1);
+    const double bx = x + inset + ch * (barW + gap);
+    roundRect(cr, bx, barTop, barW, barH, 1);
     setRgb(cr, mix(kSkin.meterFace, {0, 0, 0}, 0.55));
     cairo_fill(cr);
 
     auto zone = [&](Rgb colour, double from, double to) {
       if (to <= from) return;
       setRgb(cr, colour, 0.88);
-      cairo_rectangle(cr, x + 4, by + bh - to * bh, w - 8, (to - from) * bh);
+      cairo_rectangle(cr, bx, barTop + barH - to * barH, barW,
+                      (to - from) * barH);
       cairo_fill(cr);
     };
     const double greenEnd = std::min(lv, greenTop);
@@ -787,9 +792,17 @@ void Panel::drawLevelMeter(cairo_t* cr, double x, double y, double w, double h,
       if (lv > yellowTop) zone({1.0, 0.30, 0.24}, yellowTop, lv);
     }
   }
-  const char* labels[] = {"0", "-6", "-12", "-24", "-36", "-48", "-60"};
-  const double values[] = {0, -6, -12, -24, -36, -48, -60};
-  for (int i = 0; i < 7; ++i) {
+  static const char* const kInputLabels[] = {"0",   "-6",  "-12", "-24",
+                                             "-36", "-48", "-60"};
+  static const double kInputValues[] = {0, -6, -12, -24, -36, -48, -60};
+  static const char* const kOutputLabels[] = {"+3",  "0",   "-6",  "-12",
+                                              "-24", "-36", "-48", "-60"};
+  static const double kOutputValues[] = {3, 0, -6, -12, -24, -36, -48, -60};
+  const bool outputScale = maxDb > 0.5;
+  const char* const* labels = outputScale ? kOutputLabels : kInputLabels;
+  const double* values = outputScale ? kOutputValues : kInputValues;
+  const int labelCount = outputScale ? 8 : 7;
+  for (int i = 0; i < labelCount; ++i) {
     const double fy = y + 6 + (h - 12) * (values[i] - maxDb) / (minDb - maxDb);
     if (labelsRight) {
       text(cr, labels[i], x + w + 7, fy + 4, 9, 0, kSkin.legendDim.r,
