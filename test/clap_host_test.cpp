@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
       plugin->get_extension(plugin, CLAP_EXT_LATENCY));
   check(params && params->count(plugin) == mastering::P_COUNT,
         "parameter count matches");
-  check(params && params->count(plugin) == 38, "thirty-eight parameters");
+  check(params && params->count(plugin) == 39, "thirty-nine parameters");
   check(latency && latency->get(plugin) == 240,
         "latency is 5 ms (240 samples)");
   check(state && gui, "state and GUI extensions present");
@@ -237,6 +237,9 @@ int main(int argc, char** argv) {
     params->value_to_text(plugin, mastering::P_COMP_RATIO, 2.0, buf,
                           sizeof(buf));
     check(std::strcmp(buf, "10:1") == 0, "ratio reads as a label");
+    params->value_to_text(plugin, mastering::P_COLOR_CLIP, 2.0, buf,
+                          sizeof(buf));
+    check(std::strcmp(buf, "Hard") == 0, "clip reads as a mode name");
     params->value_to_text(plugin, mastering::P_LIMIT_CEILING, 0.95, buf,
                           sizeof(buf));
     check(std::strstr(buf, "dB") != nullptr, "ceiling reads as dB");

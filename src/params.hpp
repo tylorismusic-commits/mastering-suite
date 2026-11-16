@@ -42,6 +42,7 @@ enum ParamId : uint32_t {
   P_COLOR_TONE,
   P_COLOR_MIX,
   P_COLOR_LEVEL,
+  P_COLOR_CLIP,
   P_DENS_ON,
   P_DENS_INPUT,
   P_DENS_EFFECT,
@@ -78,6 +79,7 @@ struct ParamSpec {
 
 inline constexpr const char* kModelLabels[] = {"Valve", "Console", "Bus", "Tape",
                                                "Transformer"};
+inline constexpr const char* kClipLabels[] = {"Off", "Soft", "Hard"};
 inline constexpr const char* kRatioLabels[] = {"2:1", "4:1", "10:1"};
 inline constexpr const char* kMeterLabels[] = {"Spectrum", "Loudness", "GR"};
 inline constexpr const char* kModuleLabels[] = {"EQ", "Comp", "Color", "Density",
@@ -127,6 +129,8 @@ inline constexpr ParamSpec kParamSpecs[P_COUNT] = {
     {"color_tone", "Tone", "Color", 0.0, 1.0, 0.5, false, false, false, {}},
     {"color_mix", "Mix", "Color", 0.0, 1.0, 1.0, false, false, false, {}},
     {"color_level", "Level", "Color", 0.0, 1.0, 0.5, false, false, false, {}},
+    {"color_clip", "Clip", "Color", 0.0, 2.0, 0.0, true, false, false,
+     labels(kClipLabels)},
 
     {"density_on", "Density On", "Density", 0.0, 1.0, 0.0, true, false, true,
      {}},
@@ -343,6 +347,7 @@ inline Controls controlsFrom(const Shared& s) noexcept {
   c.color.tone = static_cast<float>(s.get(P_COLOR_TONE));
   c.color.mix = static_cast<float>(s.get(P_COLOR_MIX));
   c.color.level = static_cast<float>(s.get(P_COLOR_LEVEL));
+  c.color.clip = static_cast<int>(s.get(P_COLOR_CLIP) + 0.5);
 
   c.density.enabled = s.get(P_DENS_ON) > 0.5;
   c.density.input = static_cast<float>(s.get(P_DENS_INPUT));

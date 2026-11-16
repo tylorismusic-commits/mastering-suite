@@ -87,7 +87,9 @@ set_target_properties(mastering PROPERTIES
 
 set(MASTERING_RESOURCE_FILES
   "${CMAKE_SOURCE_DIR}/assets/fonts/Jost-ExtraBold.ttf"
-  "${CMAKE_SOURCE_DIR}/assets/fonts/OFL.txt")
+  "${CMAKE_SOURCE_DIR}/assets/fonts/OFL.txt"
+  "${CMAKE_SOURCE_DIR}/LICENSE"
+  "${CMAKE_SOURCE_DIR}/THIRD_PARTY_NOTICES.md")
 
 add_custom_target(mastering_bundle ALL
   COMMAND ${CMAKE_COMMAND} -E make_directory

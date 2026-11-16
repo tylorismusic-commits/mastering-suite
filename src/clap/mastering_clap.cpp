@@ -344,6 +344,11 @@ bool paramsValueToText(const clap_plugin_t*, clap_id id, double value,
           out, size, "%s",
           kModelLabels[std::clamp(static_cast<int>(value + 0.5), 0, 4)]);
       return true;
+    case P_COLOR_CLIP:
+      std::snprintf(
+          out, size, "%s",
+          kClipLabels[std::clamp(static_cast<int>(value + 0.5), 0, 2)]);
+      return true;
     case P_COMP_RATIO:
       std::snprintf(
           out, size, "%s",
@@ -461,6 +466,12 @@ bool paramsTextToValue(const clap_plugin_t*, clap_id id, const char* text,
       break;
     case P_COLOR_MODEL:
       if (matchList(kModelLabels, 5, &v)) {
+        *value = v;
+        return true;
+      }
+      break;
+    case P_COLOR_CLIP:
+      if (matchList(kClipLabels, 3, &v)) {
         *value = v;
         return true;
       }

@@ -71,6 +71,7 @@ private:
     ModulePower,
     Power,
     Pill,
+    Option,
     Cycle,
     MeterReset
   };

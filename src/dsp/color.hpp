@@ -54,6 +54,7 @@ public:
   void setControls(const ColorControls& c) noexcept {
     controls_ = c;
     model_ = std::min(std::max(c.model, 0), static_cast<int>(ColorModel::Count) - 1);
+    clip_ = std::min(std::max(c.clip, 0), 2);
     driveSmooth_.setTarget(hdsp::dbToGain(-12.0f + 24.0f * clamp01(c.drive)));
     mixSmooth_.setTarget(clamp01(c.mix));
     levelSmooth_.setTarget(colorLevelGain(c.level));
@@ -103,6 +104,8 @@ public:
     xR = hp_[1].process(xR);
     xL *= trim;
     xR *= trim;
+    xL = applyClip(xL);
+    xR = applyClip(xR);
 
     const float wetL = (dryL + mix * (xL - dryL)) * level;
     const float wetR = (dryR + mix * (xR - dryR)) * level;
@@ -111,6 +114,32 @@ public:
   }
 
 private:
+  // Soft and hard output clipping are level-matched at low level: both pass
+  // everything below the ceiling untouched, then either round the corner or
+  // stop dead.  The clip sits inside the wet colour path so the Mix control
+  // also controls how much of the clipped signal is heard.
+  inline float applyClip(float x) const noexcept {
+    if (clip_ <= 0) {
+      return x;
+    }
+    // The colour stage runs below full scale after its drive/shaper, so the
+    // clipper has its own fixed 12 dB of drive and matching makeup.  The
+    // effective ceiling is 0.2; below that both modes are bit-transparent.
+    constexpr float kDrive = 4.0f;
+    constexpr float kCeiling = 0.8f;
+    const float a = std::fabs(x) * kDrive;
+    if (a <= kCeiling) {
+      return x;
+    }
+    if (clip_ == 2) {
+      return x < 0.0f ? -kCeiling / kDrive : kCeiling / kDrive;
+    }
+    const float y =
+        kCeiling + (1.0f - kCeiling) *
+                       std::tanh((a - kCeiling) / (1.0f - kCeiling));
+    return (x < 0.0f ? -y : y) / kDrive;
+  }
+
   void setFilters() noexcept {
     const float tone = clamp01(controls_.tone);
     const float character = clamp01(controls_.character);
@@ -181,6 +210,7 @@ private:
 
   float rate_ = 48000.0f;
   int model_ = 0;
+  int clip_ = 0;
   ColorControls controls_;
   hdsp::Smoothed driveSmooth_;
   hdsp::Smoothed mixSmooth_;

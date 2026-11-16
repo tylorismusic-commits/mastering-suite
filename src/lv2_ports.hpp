@@ -43,11 +43,11 @@ constexpr uint32_t kLv2SampleRate = kLv2FirstSpectrum + kLv2SpectrumCount;
 constexpr uint32_t kLv2Latency = kLv2SampleRate + 1;
 constexpr uint32_t kLv2PortCount = kLv2Latency + 1;
 
-static_assert(kLv2MeterReset == 42, "port layout drifted");
-static_assert(kLv2FirstMeter == 43, "port layout drifted");
-static_assert(kLv2FirstSpectrum == 56, "port layout drifted");
-static_assert(kLv2SampleRate == 184, "port layout drifted");
-static_assert(kLv2Latency == 185, "port layout drifted");
-static_assert(kLv2PortCount == 186, "port layout drifted");
+static_assert(kLv2MeterReset == 43, "port layout drifted");
+static_assert(kLv2FirstMeter == 44, "port layout drifted");
+static_assert(kLv2FirstSpectrum == 57, "port layout drifted");
+static_assert(kLv2SampleRate == 185, "port layout drifted");
+static_assert(kLv2Latency == 186, "port layout drifted");
+static_assert(kLv2PortCount == 187, "port layout drifted");
 
 } // namespace mastering

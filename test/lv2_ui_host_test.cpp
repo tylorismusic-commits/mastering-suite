@@ -262,6 +262,25 @@ int main(int argc, char** argv) {
     check(wroteEq, "dragging a knob writes its parameter to the host");
   }
 
+  // The colour tab exposes Off/Soft/Hard output clipping.
+  if (idle) {
+    writes.events.clear();
+    sendButton(dpy, window, 520, 90, true);
+    sendButton(dpy, window, 520, 90, false);
+    idle->idle(handle);
+    sendButton(dpy, window, 772, 561, true);
+    sendButton(dpy, window, 772, 561, false);
+    idle->idle(handle);
+    bool wroteClip = false;
+    for (const Written& e : writes.events) {
+      if (e.port == mastering::kLv2FirstParam + mastering::P_COLOR_CLIP &&
+          e.value == 1.0f) {
+        wroteClip = true;
+      }
+    }
+    check(wroteClip, "colour Soft clip writes the clip parameter");
+  }
+
   // The host owns the size.  Adopting it must not bounce a resize back
   // through the host, or suil re-allocates and the window flickers/loops.
   if (idle) {

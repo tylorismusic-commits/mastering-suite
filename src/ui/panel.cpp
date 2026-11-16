@@ -256,14 +256,27 @@ void Panel::layout(const Shared& shared) {
     c.scale = std::move(labels);
     widgets_.push_back(c);
   };
+  auto option = [&](uint32_t param, double value, double x, double y,
+                    double w, double h, const char* label) {
+    Widget o{};
+    o.kind = Kind::Option;
+    o.param = param;
+    o.value = value;
+    o.x = x;
+    o.y = y;
+    o.w = w;
+    o.h = h;
+    o.label = label;
+    widgets_.push_back(o);
+  };
 
   {
     Widget p{};
     p.kind = Kind::Power;
     p.param = P_ENABLED;
-    p.x = 32;
-    p.y = 32;
-    p.r = 12;
+    p.x = 34;
+    p.y = 30;
+    p.r = 14;
     widgets_.push_back(p);
 
     Widget r{};
@@ -341,6 +354,9 @@ void Panel::layout(const Shared& shared) {
     knob(P_COLOR_TONE, 570, 455, 30, "TONE", sc(kScaleTone));
     knob(P_COLOR_MIX, 250, 560, 26, "MIX", sc(kScaleMix));
     knob(P_COLOR_LEVEL, 410, 560, 26, "LEVEL", sc(kScaleLevel));
+    option(P_COLOR_CLIP, 0, 690, 548, 52, 26, "OFF");
+    option(P_COLOR_CLIP, 1, 746, 548, 52, 26, "SOFT");
+    option(P_COLOR_CLIP, 2, 802, 548, 52, 26, "HARD");
   } else if (module == 3) {
     knob(P_DENS_INPUT, 340, 455, 32, "IN TRIM", sc(kScaleGain));
     knob(P_DENS_EFFECT, 520, 455, 34, "DENSITY", sc(kScaleDensity));
@@ -380,6 +396,9 @@ void Panel::draw(cairo_t* cr, Shared& shared, const PanelState& state) {
   const int module =
       std::clamp(static_cast<int>(shared.get(P_MODULE) + 0.5), 0, 4);
   text(cr, kCaptions[module], 190, 366, 11.5, 0, 0.72, 0.76, 0.80);
+  if (module == 2) {
+    text(cr, "CLIP", 772, 540, 9.5, 1, 0.72, 0.76, 0.80);
+  }
 
   for (const Widget& w : widgets_) drawWidget(cr, w, shared, state, 0);
   if (state.presetOpen) drawPresetList(cr, shared, state);
@@ -635,24 +654,24 @@ void Panel::drawLoudness(cairo_t* cr, const PanelState& state,
   const double col1 = x + w * 0.2;
   const double col2 = x + w * 0.5;
   const double col3 = x + w * 0.8;
-  text(cr, "INTEGRATED", col1, y + 38, 10, 1, kSkin.meterScale.r,
+  text(cr, "INTEGRATED", col1, y + 48, 10, 1, kSkin.meterScale.r,
        kSkin.meterScale.g, kSkin.meterScale.b);
-  text(cr, "SHORT-TERM", col2, y + 38, 10, 1, kSkin.meterScale.r,
+  text(cr, "SHORT-TERM", col2, y + 48, 10, 1, kSkin.meterScale.r,
        kSkin.meterScale.g, kSkin.meterScale.b);
-  text(cr, "MOMENTARY", col3, y + 38, 10, 1, kSkin.meterScale.r,
+  text(cr, "MOMENTARY", col3, y + 48, 10, 1, kSkin.meterScale.r,
        kSkin.meterScale.g, kSkin.meterScale.b);
   char buf[64];
   std::snprintf(buf, sizeof(buf), "%.1f", state.lufsI);
-  text(cr, buf, col1, y + 86, 38, 1, 0.10, 0.10, 0.10);
+  text(cr, buf, col1, y + 94, 38, 1, 0.10, 0.10, 0.10);
   std::snprintf(buf, sizeof(buf), "%.1f", state.lufsS);
-  text(cr, buf, col2, y + 86, 38, 1, 0.10, 0.10, 0.10);
+  text(cr, buf, col2, y + 94, 38, 1, 0.10, 0.10, 0.10);
   std::snprintf(buf, sizeof(buf), "%.1f", state.lufsM);
-  text(cr, buf, col3, y + 86, 38, 1, 0.10, 0.10, 0.10);
-  text(cr, "LUFS", col1, y + 102, 10, 1, kSkin.meterScale.r,
+  text(cr, buf, col3, y + 94, 38, 1, 0.10, 0.10, 0.10);
+  text(cr, "LUFS", col1, y + 110, 10, 1, kSkin.meterScale.r,
        kSkin.meterScale.g, kSkin.meterScale.b);
-  text(cr, "LUFS", col2, y + 102, 10, 1, kSkin.meterScale.r,
+  text(cr, "LUFS", col2, y + 110, 10, 1, kSkin.meterScale.r,
        kSkin.meterScale.g, kSkin.meterScale.b);
-  text(cr, "LUFS", col3, y + 102, 10, 1, kSkin.meterScale.r,
+  text(cr, "LUFS", col3, y + 110, 10, 1, kSkin.meterScale.r,
        kSkin.meterScale.g, kSkin.meterScale.b);
 
   const double barX = x + 30;
@@ -682,33 +701,33 @@ void Panel::drawGr(cairo_t* cr, const PanelState& state, int /*model*/,
   const double x0 = x + 30;
   const double x1 = x + w - 30;
   char buf[64];
-  text(cr, "COMPRESSOR", x0, y + 38, 12, 0, kSkin.meterScale.r,
+  text(cr, "COMPRESSOR", x0, y + 78, 12, 0, kSkin.meterScale.r,
        kSkin.meterScale.g, kSkin.meterScale.b);
   const double c = std::clamp(state.compGr / 12.0, 0.0, 1.0);
-  roundRect(cr, x0, y + 48, x1 - x0, 12, 3);
+  roundRect(cr, x0, y + 88, x1 - x0, 12, 3);
   setRgb(cr, mix(kSkin.meterFace, {0, 0, 0}, 0.45));
   cairo_fill(cr);
-  roundRect(cr, x0, y + 48, (x1 - x0) * c, 12, 3);
+  roundRect(cr, x0, y + 88, (x1 - x0) * c, 12, 3);
   setRgb(cr, {0.92, 0.58, 0.22}, 0.92);
   cairo_fill(cr);
   std::snprintf(buf, sizeof(buf), "%.1f dB", state.compGr);
-  text(cr, buf, x1, y + 38, 11, 2, 0.10, 0.10, 0.10);
+  text(cr, buf, x1, y + 78, 11, 2, 0.10, 0.10, 0.10);
 
-  text(cr, "LIMITER", x0, y + 100, 12, 0, kSkin.meterScale.r,
+  text(cr, "LIMITER", x0, y + 132, 12, 0, kSkin.meterScale.r,
        kSkin.meterScale.g, kSkin.meterScale.b);
   const double l = std::clamp(state.limitGr / 12.0, 0.0, 1.0);
-  roundRect(cr, x0, y + 110, x1 - x0, 12, 3);
+  roundRect(cr, x0, y + 142, x1 - x0, 12, 3);
   setRgb(cr, mix(kSkin.meterFace, {0, 0, 0}, 0.45));
   cairo_fill(cr);
-  roundRect(cr, x0, y + 110, (x1 - x0) * l, 12, 3);
+  roundRect(cr, x0, y + 142, (x1 - x0) * l, 12, 3);
   setRgb(cr, {0.85, 0.30, 0.24}, 0.92);
   cairo_fill(cr);
   std::snprintf(buf, sizeof(buf), "%.1f dB", state.limitGr);
-  text(cr, buf, x1, y + 100, 11, 2, 0.10, 0.10, 0.10);
+  text(cr, buf, x1, y + 132, 11, 2, 0.10, 0.10, 0.10);
 
   std::snprintf(buf, sizeof(buf), "TRUE PEAK  %.2f dBTP    CORRELATION  %+.2f",
                 state.truePeak, state.correlation);
-  text(cr, buf, x0, y + h - 16, 12, 0, 0.10, 0.10, 0.10);
+  text(cr, buf, x0, y + h - 20, 12, 0, 0.10, 0.10, 0.10);
 }
 
 void Panel::drawLeds(cairo_t* cr, const Shared& shared) const {
@@ -786,18 +805,19 @@ void Panel::drawWidget(cairo_t* cr, const Widget& w, const Shared& shared,
                        const PanelState& state, int /*model*/) const {
   switch (w.kind) {
     case Kind::Power: {
+      // Shared Comp Suite power button, unchanged.
       const bool on = shared.get(P_ENABLED) > 0.5;
       cairo_arc(cr, w.x, w.y, w.r, 0, 2 * kPi);
-      setRgb(cr, {0.08, 0.09, 0.11});
+      setRgb(cr, {0.12, 0.12, 0.12});
       cairo_fill(cr);
-      cairo_arc(cr, w.x, w.y, w.r - 2, 0, 2 * kPi);
+      cairo_arc(cr, w.x, w.y, w.r - 1.5, 0, 2 * kPi);
       setRgb(cr, on ? Rgb{0.36, 0.86, 0.46} : Rgb{0.42, 0.42, 0.42});
       cairo_set_line_width(cr, 2.2);
+      cairo_new_path(cr);
+      cairo_arc(cr, w.x, w.y, 7, -kPi / 2 + 0.6, -kPi / 2 + 2 * kPi - 0.6);
       cairo_stroke(cr);
-      cairo_set_line_width(cr, 2.0);
-      cairo_move_to(cr, w.x, w.y - 6);
-      cairo_line_to(cr, w.x, w.y + 1);
-      setRgb(cr, on ? Rgb{0.80, 0.95, 0.82} : Rgb{0.62, 0.62, 0.62});
+      cairo_move_to(cr, w.x, w.y - 9);
+      cairo_line_to(cr, w.x, w.y - 1);
       cairo_stroke(cr);
       break;
     }
@@ -854,6 +874,11 @@ void Panel::drawWidget(cairo_t* cr, const Widget& w, const Shared& shared,
       cairo_stroke(cr);
       text(cr, w.label, w.x + w.w * 0.5, w.y + w.h * 0.5 + 3.5, 9.5, 1,
            kSkin.btnText.r, kSkin.btnText.g, kSkin.btnText.b);
+      break;
+    }
+    case Kind::Option: {
+      const int value = static_cast<int>(std::lround(shared.get(w.param)));
+      drawPill(cr, w, value == static_cast<int>(w.value), 0);
       break;
     }
     case Kind::Pill:
@@ -1043,6 +1068,10 @@ bool Panel::pointerDown(Shared& shared, PanelState& state, double x,
       case Kind::ModulePower:
       case Kind::Pill:
         shared.set(w.param, shared.get(w.param) > 0.5 ? 0.0 : 1.0);
+        state.presetDirty = true;
+        return true;
+      case Kind::Option:
+        shared.set(w.param, w.value);
         state.presetDirty = true;
         return true;
       case Kind::MeterReset:

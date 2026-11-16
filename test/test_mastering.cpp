@@ -125,6 +125,51 @@ int main() {
     check(finite, "colour and density stay finite");
   }
 
+  // Colour-stage soft and hard clipping.
+  {
+    auto runClip = [](int clip, float& peak) {
+      MasteringEngine e;
+      e.prepare(kSr);
+      Controls c;
+      c.eq.enabled = false;
+      c.comp.enabled = false;
+      c.density.enabled = false;
+      c.limiter.enabled = false;
+      c.color.enabled = true;
+      c.color.model = 0;
+      c.color.drive = 0.45f;
+      c.color.character = 0.5f;
+      c.color.tone = 0.5f;
+      c.color.mix = 1.0f;
+      c.color.level = 0.5f;
+      c.color.clip = clip;
+      e.setControls(c);
+      Meters m;
+      std::vector<float> l(kFrames), r(kFrames);
+      peak = 0.0f;
+      bool finite = true;
+      for (int b = 0; b < 80; ++b) {
+        sine(l, r, b, 1.0f, 220.0f);
+        e.process(l.data(), r.data(), kFrames, m);
+        for (float v : l) {
+          if (!std::isfinite(v)) finite = false;
+          if (b > 20) peak = std::max(peak, std::fabs(v));
+        }
+      }
+      return finite;
+    };
+
+    float softPeak = 0.0f;
+    float hardPeak = 0.0f;
+    const bool softFinite = runClip(1, softPeak);
+    const bool hardFinite = runClip(2, hardPeak);
+    check(softFinite && hardFinite, "colour clip modes stay finite");
+    check(hardPeak <= 0.2005f && hardPeak > 0.19f,
+          "hard clip stops at its ceiling");
+    check(softPeak > hardPeak && softPeak <= 0.2505f,
+          "soft clip rounds the ceiling without passing it");
+  }
+
   // Loudness/spectrum meters populate.
   {
     MasteringEngine e;

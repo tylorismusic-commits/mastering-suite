@@ -48,6 +48,7 @@ struct ColorControls {
   float tone = 0.5f;
   float mix = 1.0f;
   float level = 0.5f;
+  int clip = 0; // Off / Soft / Hard
 };
 
 struct DensityControls {

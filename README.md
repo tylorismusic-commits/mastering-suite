@@ -16,8 +16,8 @@ with a self-contained loudness analyser.
 - **Bus Compressor** — stereo-linked feed-forward bus compressor with ratio,
   knee, side-chain high-pass, parallel mix and optional auto gain.
 - **Patina Color** — single-band extraction of Patina's colour engine: five
-  models (Valve, Console, Bus, Tape, Transformer), drive, character, tone, mix
-  and level.
+  models (Valve, Console, Bus, Tape, Transformer), drive, character, tone, mix,
+  level and Off/Soft/Hard output clipping.
 - **Density** — original harmonic-density stage built on the asymmetric ADAA
   shaper. Input, density and output, with no proprietary curve.
 - **Peak Limiter** — five-millisecond lookahead, true-peak detection and a
