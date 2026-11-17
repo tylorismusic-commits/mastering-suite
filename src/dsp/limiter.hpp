@@ -27,13 +27,16 @@ public:
     delayR_.assign(static_cast<size_t>(lookahead_ + 1), 0.0f);
     attackCoeff_ = hdsp::timeCoeff(0.2f, rate_);
     releaseCoeff_ = hdsp::timeCoeff(limiterReleaseMs(controls_.release), rate_);
+    inputSmooth_.setTime(15.0f, rate_);
     reset();
     setControls(controls_);
+    inputSmooth_.snap();
   }
 
   void setControls(const LimiterControls& c) noexcept {
     const bool wasEnabled = controls_.enabled;
     controls_ = c;
+    inputSmooth_.setTarget(hdsp::dbToGain(limiterInputDb(c.inputGain)));
     ceiling_ = hdsp::dbToGain(limiterCeilingDb(c.ceiling));
     releaseCoeff_ = hdsp::timeCoeff(limiterReleaseMs(c.release), rate_);
     if (c.enabled && !wasEnabled) {
@@ -50,15 +53,22 @@ public:
     write_ = 0;
     gain_ = 1.0f;
     grDb_ = 0.0f;
+    inputSmooth_.snap();
     tpL_.reset();
     tpR_.reset();
   }
 
   inline void process(float& left, float& right) noexcept {
-    float peak = std::max(std::fabs(left), std::fabs(right));
+    // The input trim only drives the limiter when the module is active; a
+    // bypassed limiter must stay at unity.
+    const float drive = inputSmooth_.next();
+    const float inGain = controls_.enabled ? drive : 1.0f;
+    const float inL = left * inGain;
+    const float inR = right * inGain;
+    float peak = std::max(std::fabs(inL), std::fabs(inR));
     if (controls_.truePeak) {
-      peak = std::max(peak, tpL_.process(left));
-      peak = std::max(peak, tpR_.process(right));
+      peak = std::max(peak, tpL_.process(inL));
+      peak = std::max(peak, tpR_.process(inR));
     }
     const float target = peak > ceiling_ ? ceiling_ / peak : 1.0f;
     if (target < gain_) {
@@ -69,8 +79,8 @@ public:
     gain_ = std::min(std::max(gain_, 0.0f), 1.0f);
     grDb_ = controls_.enabled ? -hdsp::gainToDb(std::max(gain_, 1e-9f)) : 0.0f;
 
-    delayL_[write_] = left;
-    delayR_[write_] = right;
+    delayL_[write_] = inL;
+    delayR_[write_] = inR;
     const size_t size = delayL_.size();
     const size_t read =
         (static_cast<size_t>(write_) + size - static_cast<size_t>(lookahead_)) %
@@ -104,6 +114,7 @@ private:
   float grDb_ = 0.0f;
   float attackCoeff_ = 0.0f;
   float releaseCoeff_ = 0.0f;
+  hdsp::Smoothed inputSmooth_;
   hdsp::TruePeakDetector tpL_;
   hdsp::TruePeakDetector tpR_;
 };

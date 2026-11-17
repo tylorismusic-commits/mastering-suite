@@ -363,8 +363,9 @@ void Panel::layout(const Shared& shared) {
     knob(P_DENS_EFFECT, 520, 480, 40, "DENSITY", sc(kScaleDensity));
     knob(P_DENS_OUTPUT, 740, 480, 38, "OUT TRIM", sc(kScaleGain));
   } else {
-    knob(P_LIMIT_CEILING, 380, 480, 38, "CEILING", sc(kScaleCeiling));
-    knob(P_LIMIT_RELEASE, 660, 480, 38, "RELEASE", sc(kScaleLimitRelease));
+    knob(P_LIMIT_INPUT, 300, 480, 38, "IN GAIN", sc(kScaleGain));
+    knob(P_LIMIT_CEILING, 520, 480, 38, "CEILING", sc(kScaleCeiling));
+    knob(P_LIMIT_RELEASE, 740, 480, 38, "RELEASE", sc(kScaleLimitRelease));
     pill(P_LIMIT_TRUE_PEAK, 460, 570, 120, 26, "TRUE PEAK");
   }
 

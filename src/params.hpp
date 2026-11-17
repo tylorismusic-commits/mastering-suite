@@ -51,6 +51,7 @@ enum ParamId : uint32_t {
   P_LIMIT_CEILING,
   P_LIMIT_RELEASE,
   P_LIMIT_TRUE_PEAK,
+  P_LIMIT_INPUT,
   P_COUNT
 };
 
@@ -149,6 +150,8 @@ inline constexpr ParamSpec kParamSpecs[P_COUNT] = {
      false, {}},
     {"limiter_true_peak", "True Peak", "Limiter", 0.0, 1.0, 1.0, true, false,
      true, {}},
+    {"limiter_input", "Input Gain", "Limiter", 0.0, 1.0, 0.5, false, false,
+     false, {}},
 };
 
 static_assert(sizeof(kParamSpecs) / sizeof(kParamSpecs[0]) == P_COUNT,
@@ -197,6 +200,9 @@ inline float compScHpfHz(float v) noexcept {
   return 20.0f * std::pow(10.0f, clamp01(v));
 }
 inline float densityDb(float v) noexcept {
+  return -12.0f + 24.0f * clamp01(v);
+}
+inline float limiterInputDb(float v) noexcept {
   return -12.0f + 24.0f * clamp01(v);
 }
 inline float limiterCeilingDb(float v) noexcept {
@@ -355,6 +361,7 @@ inline Controls controlsFrom(const Shared& s) noexcept {
   c.density.output = static_cast<float>(s.get(P_DENS_OUTPUT));
 
   c.limiter.enabled = s.get(P_LIMIT_ON) > 0.5;
+  c.limiter.inputGain = static_cast<float>(s.get(P_LIMIT_INPUT));
   c.limiter.ceiling = static_cast<float>(s.get(P_LIMIT_CEILING));
   c.limiter.release = static_cast<float>(s.get(P_LIMIT_RELEASE));
   c.limiter.truePeak = s.get(P_LIMIT_TRUE_PEAK) > 0.5;

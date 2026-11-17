@@ -20,9 +20,9 @@ with a self-contained loudness analyser.
   level and Off/Soft/Hard output clipping.
 - **Density** — original harmonic-density stage built on the asymmetric ADAA
   shaper. Input, density and output, with no proprietary curve.
-- **Peak Limiter** — five-millisecond lookahead, true-peak detection and a
-  selectable ceiling. Latency is 240 samples at 48 kHz and stays constant when
-  the module is bypassed.
+- **Peak Limiter** — input gain to drive into the ceiling, five-millisecond
+  lookahead, true-peak detection and a selectable ceiling. Latency is 240
+  samples at 48 kHz and stays constant when the module is bypassed.
 
 ## Typed values
 
@@ -66,7 +66,7 @@ The install step writes `MasteringSuite.clap` with its resources into
 cmake --build build --target dist
 ```
 
-This creates `build/dist/MasteringSuite-0.3.0-linux-x86_64.tar.gz` with:
+This creates `build/dist/MasteringSuite-0.4.0-linux-x86_64.tar.gz` with:
 
 - `MasteringSuite.clap` and `MasteringSuite.resources/`
 - `mastering-suite.lv2/` (plugin, UI, TTL, presets, font)

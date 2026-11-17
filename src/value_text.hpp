@@ -58,6 +58,10 @@ inline std::string formatParamValue(uint32_t id, double value) {
       std::snprintf(buf, sizeof(buf), "%+.1f dB",
                     densityDb(static_cast<float>(value)));
       return buf;
+    case P_LIMIT_INPUT:
+      std::snprintf(buf, sizeof(buf), "%+.1f dB",
+                    limiterInputDb(static_cast<float>(value)));
+      return buf;
     case P_EQ_LOW_FREQ:
       std::snprintf(buf, sizeof(buf), "%.0f Hz",
                     lowFreqHz(static_cast<float>(value)));
@@ -194,6 +198,7 @@ inline bool parseParamValue(uint32_t id, const std::string& raw, double* out) {
     case P_EQ_HIGH_GAIN:
     case P_DENS_INPUT:
     case P_DENS_OUTPUT:
+    case P_LIMIT_INPUT:
       *out = (value + 12.0) / 24.0;
       return true;
     case P_EQ_LOW_FREQ:

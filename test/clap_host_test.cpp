@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
       plugin->get_extension(plugin, CLAP_EXT_LATENCY));
   check(params && params->count(plugin) == mastering::P_COUNT,
         "parameter count matches");
-  check(params && params->count(plugin) == 39, "thirty-nine parameters");
+  check(params && params->count(plugin) == 40, "forty parameters");
   check(latency && latency->get(plugin) == 240,
         "latency is 5 ms (240 samples)");
   check(state && gui, "state and GUI extensions present");

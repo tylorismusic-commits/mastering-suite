@@ -59,6 +59,7 @@ struct DensityControls {
 
 struct LimiterControls {
   bool enabled = true;
+  float inputGain = 0.5f;  // -12..+12 dB, drive into the ceiling
   float ceiling = 0.95f;
   float release = 0.5f;
   bool truePeak = true;

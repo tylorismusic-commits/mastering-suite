@@ -119,6 +119,47 @@ int main() {
     check(m.limitGr > 0.1f, "limiter reports gain reduction");
   }
 
+  // Limiter input gain drives into the ceiling; the bypass path stays unity.
+  {
+    auto run = [](bool enabled, float gainNorm, float& peak) {
+      MasteringEngine e;
+      e.prepare(kSr);
+      Controls c;
+      c.eq.enabled = false;
+      c.comp.enabled = false;
+      c.color.enabled = false;
+      c.density.enabled = false;
+      c.limiter.enabled = enabled;
+      c.limiter.ceiling = 0.5f;   // -3 dB
+      c.limiter.truePeak = true;
+      c.limiter.inputGain = gainNorm;
+      e.setControls(c);
+      Meters m;
+      std::vector<float> l(kFrames), r(kFrames);
+      peak = 0.0f;
+      for (int b = 0; b < 160; ++b) {
+        sine(l, r, b, 0.2f, 1000.0f);
+        e.process(l.data(), r.data(), kFrames, m);
+        if (b > 80) {
+          for (float v : l) peak = std::max(peak, std::fabs(v));
+        }
+      }
+    };
+    float unity = 0.0f;
+    float driven = 0.0f;
+    float bypassed = 0.0f;
+    run(true, 0.5f, unity);
+    run(true, 1.0f, driven);
+    run(false, 1.0f, bypassed);
+    const float ceiling = std::pow(10.0f, limiterCeilingDb(0.5f) * 0.05f);
+    check(std::fabs(unity - 0.2f) < 0.01f,
+          "limiter at 0 dB input leaves headroom alone");
+    check(driven > 0.6f && driven <= ceiling * 1.002f,
+          "limiter input gain drives into the ceiling");
+    check(std::fabs(bypassed - 0.2f) < 0.01f,
+          "bypassed limiter ignores its input gain");
+  }
+
   // Colour and density stay finite.
   {
     MasteringEngine e;
