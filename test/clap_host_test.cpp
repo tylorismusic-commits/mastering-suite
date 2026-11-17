@@ -335,6 +335,20 @@ int main(int argc, char** argv) {
         XFlush(dpy);
         std::this_thread::sleep_for(std::chrono::milliseconds(150));
       };
+      auto rightClick = [&](int x, int y) {
+        XTestFakeMotionEvent(dpy, -1, originX + x, originY + y, CurrentTime);
+        XTestFakeButtonEvent(dpy, 3, True, CurrentTime);
+        XTestFakeButtonEvent(dpy, 3, False, CurrentTime);
+        XFlush(dpy);
+        std::this_thread::sleep_for(std::chrono::milliseconds(150));
+      };
+      auto key = [&](KeySym sym) {
+        const KeyCode code = XKeysymToKeycode(dpy, sym);
+        XTestFakeKeyEvent(dpy, code, True, CurrentTime);
+        XTestFakeKeyEvent(dpy, code, False, CurrentTime);
+        XFlush(dpy);
+        std::this_thread::sleep_for(std::chrono::milliseconds(40));
+      };
       auto drag = [&](int x, int y, int dy) {
         const int sx = originX + x, sy = originY + y;
         XTestFakeMotionEvent(dpy, -1, sx, sy, CurrentTime);
@@ -354,9 +368,15 @@ int main(int argc, char** argv) {
         return v;
       };
       const double before = paramValue(mastering::P_EQ_LOW_GAIN);
-      drag(250, 455, -50);
+      drag(220, 455, -50);
       check(paramValue(mastering::P_EQ_LOW_GAIN) > before + 0.03,
             "dragging LOW GAIN moves it");
+      rightClick(220, 455);
+      key(XK_minus);
+      key(XK_6);
+      key(XK_Return);
+      check(std::fabs(paramValue(mastering::P_EQ_LOW_GAIN) - 0.25) < 1e-4,
+            "right-click typed value enters -6 dB");
       click(320, 90);
       check(paramValue(mastering::P_MODULE) == 1.0,
             "clicking COMP selects the compressor");

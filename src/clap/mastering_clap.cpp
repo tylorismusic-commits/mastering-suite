@@ -5,6 +5,7 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/keysym.h>
 #include <cairo-xlib.h>
 #include <dlfcn.h>
 
@@ -24,6 +25,7 @@
 
 #include "dsp/engine.hpp"
 #include "params.hpp"
+#include "value_text.hpp"
 #include "ui/geometry.hpp"
 #include "ui/panel.hpp"
 #include "version.hpp"
@@ -125,6 +127,8 @@ private:
     XStoreName(dpy, win, kPluginName);
     XMapRaised(dpy, win);
     XFlush(dpy);
+    display_ = dpy;
+    window_ = win;
 
     panel_.loadFont(bundleResourceDir());
     {
@@ -201,6 +205,8 @@ private:
     if (cr) cairo_destroy(cr);
     if (backing) cairo_surface_destroy(backing);
     if (windowSurface) cairo_surface_destroy(windowSurface);
+    display_ = nullptr;
+    window_ = 0;
     XDestroyWindow(dpy, win);
     XCloseDisplay(dpy);
   }
@@ -209,6 +215,10 @@ private:
     const double s = scale();
     switch (ev.type) {
       case ButtonPress: {
+        if (display_ && window_) {
+          XSetInputFocus(display_, window_, RevertToParent, CurrentTime);
+          XFlush(display_);
+        }
         const double x = ev.xbutton.x / s;
         const double y = ev.xbutton.y / s;
         if (ev.xbutton.button == Button4) {
@@ -217,12 +227,30 @@ private:
           panel_.wheel(shared_, state_, x, y, -1.0);
         } else if (ev.xbutton.button == Button1) {
           panel_.pointerDown(shared_, state_, x, y);
+        } else if (ev.xbutton.button == Button3) {
+          panel_.beginTextEntry(shared_, state_, x, y);
         }
         break;
       }
       case ButtonRelease:
         panel_.pointerUp();
         break;
+      case KeyPress: {
+        char buf[8] = {};
+        KeySym sym = 0;
+        XKeyEvent key = ev.xkey;
+        const int n = XLookupString(&key, buf, sizeof(buf), &sym, nullptr);
+        if (sym == XK_Return || sym == XK_KP_Enter) {
+          panel_.textKey(shared_, state_, Panel::kTextEnter, 0);
+        } else if (sym == XK_Escape) {
+          panel_.textKey(shared_, state_, Panel::kTextEscape, 0);
+        } else if (sym == XK_BackSpace) {
+          panel_.textKey(shared_, state_, Panel::kTextBackspace, 0);
+        } else if (n > 0) {
+          panel_.textKey(shared_, state_, 0, buf[0]);
+        }
+        break;
+      }
       case MotionNotify: {
         const bool fine = (ev.xmotion.state & ShiftMask) != 0;
         panel_.pointerMove(shared_, state_, ev.xmotion.x / s, ev.xmotion.y / s,
@@ -242,6 +270,8 @@ private:
   std::mutex mutex_;
   std::condition_variable cv_;
   Window parentWindow_ = 0;
+  Display* display_ = nullptr;
+  Window window_ = 0;
   bool opened_ = false;
   bool openFailed_ = false;
   bool quitting_ = false;
@@ -317,300 +347,16 @@ bool paramsValue(const clap_plugin_t* p, clap_id id, double* value) {
 
 bool paramsValueToText(const clap_plugin_t*, clap_id id, double value,
                        char* out, uint32_t size) {
-  switch (id) {
-    case P_ENABLED:
-    case P_EQ_ON:
-    case P_COMP_ON:
-    case P_COLOR_ON:
-    case P_DENS_ON:
-    case P_LIMIT_ON:
-    case P_COMP_AUTO:
-    case P_LIMIT_TRUE_PEAK:
-      std::snprintf(out, size, "%s", value > 0.5 ? "On" : "Off");
-      return true;
-    case P_MODULE:
-      std::snprintf(
-          out, size, "%s",
-          kModuleLabels[std::clamp(static_cast<int>(value + 0.5), 0, 4)]);
-      return true;
-    case P_METER:
-      std::snprintf(
-          out, size, "%s",
-          kMeterLabels[std::clamp(static_cast<int>(value + 0.5), 0, 2)]);
-      return true;
-    case P_COLOR_MODEL:
-      std::snprintf(
-          out, size, "%s",
-          kModelLabels[std::clamp(static_cast<int>(value + 0.5), 0, 4)]);
-      return true;
-    case P_COLOR_CLIP:
-      std::snprintf(
-          out, size, "%s",
-          kClipLabels[std::clamp(static_cast<int>(value + 0.5), 0, 2)]);
-      return true;
-    case P_COMP_RATIO:
-      std::snprintf(
-          out, size, "%s",
-          kRatioLabels[std::clamp(static_cast<int>(value + 0.5), 0, 2)]);
-      return true;
-    case P_INPUT:
-    case P_OUTPUT:
-    case P_EQ_LOW_GAIN:
-    case P_EQ_MID_GAIN:
-    case P_EQ_HIGH_GAIN:
-    case P_DENS_INPUT:
-    case P_DENS_OUTPUT:
-      std::snprintf(out, size, "%+.1f dB", densityDb(static_cast<float>(value)));
-      return true;
-    case P_EQ_LOW_FREQ:
-      std::snprintf(out, size, "%.0f Hz", lowFreqHz(static_cast<float>(value)));
-      return true;
-    case P_EQ_MID_FREQ:
-      std::snprintf(out, size, "%.0f Hz", midFreqHz(static_cast<float>(value)));
-      return true;
-    case P_EQ_HIGH_FREQ:
-      std::snprintf(out, size, "%.0f Hz", highFreqHz(static_cast<float>(value)));
-      return true;
-    case P_EQ_HPF:
-      std::snprintf(out, size, "%.0f Hz", hpfHz(static_cast<float>(value)));
-      return true;
-    case P_EQ_MID_Q:
-      std::snprintf(out, size, "%.2f", midQ(static_cast<float>(value)));
-      return true;
-    case P_COMP_THRESHOLD:
-      std::snprintf(out, size, "%.1f dB",
-                    compThresholdDb(static_cast<float>(value)));
-      return true;
-    case P_COMP_ATTACK:
-      std::snprintf(out, size, "%.0f ms",
-                    compAttackMs(static_cast<float>(value)));
-      return true;
-    case P_COMP_RELEASE:
-      std::snprintf(out, size, "%.0f ms",
-                    compReleaseMs(static_cast<float>(value)));
-      return true;
-    case P_COMP_KNEE:
-      std::snprintf(out, size, "%.1f dB",
-                    compKneeDb(static_cast<float>(value)));
-      return true;
-    case P_COMP_SC_HPF:
-      std::snprintf(out, size, "%.0f Hz",
-                    compScHpfHz(static_cast<float>(value)));
-      return true;
-    case P_COMP_MIX:
-    case P_COLOR_DRIVE:
-    case P_COLOR_CHARACTER:
-    case P_COLOR_TONE:
-    case P_COLOR_MIX:
-    case P_DENS_EFFECT:
-      std::snprintf(out, size, "%.0f%%", value * 100.0);
-      return true;
-    case P_COLOR_LEVEL: {
-      const float v = static_cast<float>(value);
-      if (v <= 0.002f) {
-        std::snprintf(out, size, "Off");
-      } else {
-        const float db = v <= 0.5f ? -60.0f + 120.0f * v
-                                   : 24.0f * (v - 0.5f);
-        std::snprintf(out, size, "%+.1f dB", db);
-      }
-      return true;
-    }
-    case P_LIMIT_CEILING:
-      std::snprintf(out, size, "%.1f dB",
-                    limiterCeilingDb(static_cast<float>(value)));
-      return true;
-    case P_LIMIT_RELEASE:
-      std::snprintf(out, size, "%.0f ms",
-                    limiterReleaseMs(static_cast<float>(value)));
-      return true;
-    default:
-      std::snprintf(out, size, "%.2f", value);
-      return true;
-  }
+  if (id >= P_COUNT) return false;
+  const std::string text = formatParamValue(id, value);
+  std::snprintf(out, size, "%s", text.c_str());
+  return true;
 }
 
 bool paramsTextToValue(const clap_plugin_t*, clap_id id, const char* text,
                        double* value) {
-  if (!text) return false;
-  auto matchList = [&](const char* const* list, int n, double* out) {
-    for (int i = 0; i < n; ++i) {
-      if (strcasecmp(text, list[i]) == 0) {
-        *out = i;
-        return true;
-      }
-    }
-    return false;
-  };
-  auto parse = [&](double* out) {
-    char* end = nullptr;
-    const double v = std::strtod(text, &end);
-    if (end == text) return false;
-    *out = v;
-    return true;
-  };
-  double v = 0.0;
-  switch (id) {
-    case P_MODULE:
-      if (matchList(kModuleLabels, 5, &v)) {
-        *value = v;
-        return true;
-      }
-      break;
-    case P_METER:
-      if (matchList(kMeterLabels, 3, &v)) {
-        *value = v;
-        return true;
-      }
-      break;
-    case P_COLOR_MODEL:
-      if (matchList(kModelLabels, 5, &v)) {
-        *value = v;
-        return true;
-      }
-      break;
-    case P_COLOR_CLIP:
-      if (matchList(kClipLabels, 3, &v)) {
-        *value = v;
-        return true;
-      }
-      break;
-    case P_COMP_RATIO:
-      if (matchList(kRatioLabels, 3, &v)) {
-        *value = v;
-        return true;
-      }
-      break;
-    case P_ENABLED:
-    case P_EQ_ON:
-    case P_COMP_ON:
-    case P_COLOR_ON:
-    case P_DENS_ON:
-    case P_LIMIT_ON:
-    case P_COMP_AUTO:
-    case P_LIMIT_TRUE_PEAK:
-      if (strcasecmp(text, "On") == 0) {
-        *value = 1.0;
-        return true;
-      }
-      if (strcasecmp(text, "Off") == 0) {
-        *value = 0.0;
-        return true;
-      }
-      break;
-    case P_COLOR_LEVEL:
-      if (strcasecmp(text, "Off") == 0) {
-        *value = 0.0;
-        return true;
-      }
-      if (parse(&v)) {
-        *value = v <= 0.0 ? (v + 60.0) / 120.0 : 0.5 + v / 24.0;
-        return true;
-      }
-      break;
-    case P_INPUT:
-    case P_OUTPUT:
-    case P_EQ_LOW_GAIN:
-    case P_EQ_MID_GAIN:
-    case P_EQ_HIGH_GAIN:
-    case P_DENS_INPUT:
-    case P_DENS_OUTPUT:
-      if (parse(&v)) {
-        *value = (v + 12.0) / 24.0;
-        return true;
-      }
-      break;
-    case P_EQ_LOW_FREQ:
-      if (parse(&v)) {
-        *value = std::log(std::max(v, 40.0) / 40.0) / std::log(7.5);
-        return true;
-      }
-      break;
-    case P_EQ_MID_FREQ:
-      if (parse(&v)) {
-        *value = std::log(std::max(v, 200.0) / 200.0) / std::log(25.0);
-        return true;
-      }
-      break;
-    case P_EQ_HIGH_FREQ:
-      if (parse(&v)) {
-        *value = std::log(std::max(v, 2000.0) / 2000.0) / std::log(4.0);
-        return true;
-      }
-      break;
-    case P_EQ_HPF:
-      if (parse(&v)) {
-        *value = std::log(std::max(v, 20.0) / 20.0) / std::log(6.0);
-        return true;
-      }
-      break;
-    case P_EQ_MID_Q:
-      if (parse(&v)) {
-        *value = (v - 0.3) / 1.2;
-        return true;
-      }
-      break;
-    case P_COMP_THRESHOLD:
-      if (parse(&v)) {
-        *value = (v + 40.0) / 40.0;
-        return true;
-      }
-      break;
-    case P_COMP_ATTACK:
-      if (parse(&v)) {
-        *value = std::log(std::max(v, 1.0)) / std::log(100.0);
-        return true;
-      }
-      break;
-    case P_COMP_RELEASE:
-      if (parse(&v)) {
-        *value = std::log(std::max(v, 50.0) / 50.0) / std::log(20.0);
-        return true;
-      }
-      break;
-    case P_COMP_KNEE:
-      if (parse(&v)) {
-        *value = v / 12.0;
-        return true;
-      }
-      break;
-    case P_COMP_SC_HPF:
-      if (parse(&v)) {
-        *value = std::log(std::max(v, 20.0) / 20.0) / std::log(10.0);
-        return true;
-      }
-      break;
-    case P_COMP_MIX:
-    case P_COLOR_DRIVE:
-    case P_COLOR_CHARACTER:
-    case P_COLOR_TONE:
-    case P_COLOR_MIX:
-    case P_DENS_EFFECT:
-      if (parse(&v)) {
-        *value = std::strchr(text, '%') ? v / 100.0 : (v > 1.0 ? v / 100.0 : v);
-        return true;
-      }
-      break;
-    case P_LIMIT_CEILING:
-      if (parse(&v)) {
-        *value = (v + 6.0) / 6.0;
-        return true;
-      }
-      break;
-    case P_LIMIT_RELEASE:
-      if (parse(&v)) {
-        *value = std::log(std::max(v, 20.0) / 20.0) / std::log(25.0);
-        return true;
-      }
-      break;
-    default:
-      break;
-  }
-  if (parse(&v)) {
-    *value = v;
-    return true;
-  }
-  return false;
+  if (!text || id >= P_COUNT) return false;
+  return parseParamValue(id, text, value);
 }
 
 void applyEvents(Plugin* s, const clap_input_events_t* in) {

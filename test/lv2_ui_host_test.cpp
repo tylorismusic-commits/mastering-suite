@@ -11,6 +11,7 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/keysym.h>
 
 #include <chrono>
 #include <cstdint>
@@ -79,6 +80,33 @@ void sendButton(Display* dpy, Window window, int x, int y, bool press) {
   ev.xbutton.y = y;
   ev.xbutton.button = Button1;
   ev.xbutton.same_screen = True;
+  XSendEvent(dpy, window, False, 0, &ev);
+  XSync(dpy, False);
+}
+
+void sendRightClick(Display* dpy, Window window, int x, int y) {
+  XEvent ev{};
+  ev.type = ButtonPress;
+  ev.xbutton.display = dpy;
+  ev.xbutton.window = window;
+  ev.xbutton.root = RootWindow(dpy, DefaultScreen(dpy));
+  ev.xbutton.x = x;
+  ev.xbutton.y = y;
+  ev.xbutton.button = Button3;
+  ev.xbutton.same_screen = True;
+  XSendEvent(dpy, window, False, 0, &ev);
+  XSync(dpy, False);
+}
+
+void sendKey(Display* dpy, Window window, KeySym sym) {
+  const KeyCode code = XKeysymToKeycode(dpy, sym);
+  XEvent ev{};
+  ev.type = KeyPress;
+  ev.xkey.display = dpy;
+  ev.xkey.window = window;
+  ev.xkey.root = RootWindow(dpy, DefaultScreen(dpy));
+  ev.xkey.keycode = code;
+  ev.xkey.same_screen = True;
   XSendEvent(dpy, window, False, 0, &ev);
   XSync(dpy, False);
 }
@@ -260,6 +288,25 @@ int main(int argc, char** argv) {
       }
     }
     check(wroteEq, "dragging a knob writes its parameter to the host");
+  }
+
+  // Right-click a knob, type a value and commit it with Enter.
+  if (idle) {
+    writes.events.clear();
+    sendRightClick(dpy, window, 220, 455);  // Low Gain
+    idle->idle(handle);
+    sendKey(dpy, window, XK_minus);
+    sendKey(dpy, window, XK_6);
+    sendKey(dpy, window, XK_Return);
+    idle->idle(handle);
+    bool wroteGain = false;
+    for (const Written& e : writes.events) {
+      if (e.port == mastering::kLv2FirstParam + mastering::P_EQ_LOW_GAIN &&
+          std::fabs(e.value - 0.25f) < 1e-4f) {
+        wroteGain = true;
+      }
+    }
+    check(wroteGain, "right-click typed value commits -6 dB");
   }
 
   // The colour tab exposes Off/Soft/Hard output clipping.

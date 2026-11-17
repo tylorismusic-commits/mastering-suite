@@ -24,6 +24,11 @@ with a self-contained loudness analyser.
   selectable ceiling. Latency is 240 samples at 48 kHz and stays constant when
   the module is bypassed.
 
+## Typed values
+
+Right-click any knob to open a value field. Type a value with its unit, such
+as `-6 dB`, `120 Hz`, `50%`, or `Soft`; Enter commits and Escape cancels.
+
 ## Metering
 
 - Input and output sample peak, per channel
@@ -61,7 +66,7 @@ The install step writes `MasteringSuite.clap` with its resources into
 cmake --build build --target dist
 ```
 
-This creates `build/dist/MasteringSuite-0.1.1-linux-x86_64.tar.gz` with:
+This creates `build/dist/MasteringSuite-0.2.0-linux-x86_64.tar.gz` with:
 
 - `MasteringSuite.clap` and `MasteringSuite.resources/`
 - `mastering-suite.lv2/` (plugin, UI, TTL, presets, font)
