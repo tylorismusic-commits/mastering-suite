@@ -4,6 +4,7 @@
 
 #include <cairo.h>
 
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -120,6 +121,8 @@ private:
   void drawTextEntry(cairo_t* cr, const Shared& shared) const;
   bool commitTextEntry(Shared& shared, PanelState& state);
   bool hitTextEntry(double x, double y) const;
+  double presetValue(const PanelState& state, uint32_t param) const;
+  void refreshPresetDirty(const Shared& shared, PanelState& state) const;
   void text(cairo_t* cr, const char* s, double x, double y, double size,
             int align, double r, double g, double b) const;
   bool hitWidget(const Widget& w, double x, double y) const;
@@ -128,6 +131,8 @@ private:
   int dragParam_ = -1;
   double dragStartY_ = 0.0;
   double dragStartValue_ = 0.0;
+  std::chrono::steady_clock::time_point lastClickTime_{};
+  uint32_t lastClickParam_ = 0xffffffffu;
 
   bool editing_ = false;
   uint32_t editParam_ = 0;

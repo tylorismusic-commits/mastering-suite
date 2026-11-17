@@ -66,7 +66,7 @@ The install step writes `MasteringSuite.clap` with its resources into
 cmake --build build --target dist
 ```
 
-This creates `build/dist/MasteringSuite-0.2.0-linux-x86_64.tar.gz` with:
+This creates `build/dist/MasteringSuite-0.3.0-linux-x86_64.tar.gz` with:
 
 - `MasteringSuite.clap` and `MasteringSuite.resources/`
 - `mastering-suite.lv2/` (plugin, UI, TTL, presets, font)

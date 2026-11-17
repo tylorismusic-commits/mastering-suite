@@ -1062,10 +1062,23 @@ bool Panel::pointerDown(Shared& shared, PanelState& state, double x,
     editText_.clear();
   }
   if (handlePresetClick(shared, state, x, y)) return true;
+  auto doubleClicked = [&](uint32_t param) {
+    const auto now = std::chrono::steady_clock::now();
+    const bool twice =
+        param == lastClickParam_ &&
+        now - lastClickTime_ < std::chrono::milliseconds(350);
+    lastClickParam_ = twice ? 0xffffffffu : param;
+    lastClickTime_ = now;
+    if (!twice) return false;
+    shared.set(param, presetValue(state, param));
+    refreshPresetDirty(shared, state);
+    return true;
+  };
   for (const Widget& w : widgets_) {
     if (!hitWidget(w, x, y)) continue;
     switch (w.kind) {
       case Kind::Knob:
+        if (doubleClicked(w.param)) return true;
         dragParam_ = static_cast<int>(w.param);
         dragStartY_ = y;
         dragStartValue_ = shared.get(w.param);
@@ -1229,6 +1242,36 @@ void Panel::drawTextEntry(cairo_t* cr, const Shared& shared) const {
        editText_.empty() ? kSkin.legendDim.r : kSkin.legend.r,
        editText_.empty() ? kSkin.legendDim.g : kSkin.legend.g,
        editText_.empty() ? kSkin.legendDim.b : kSkin.legend.b);
+}
+
+
+double Panel::presetValue(const PanelState& state, uint32_t param) const {
+  double value = kParamSpecs[param].def;
+  if (state.presetIndex >= 0 && state.presetIndex < kPresetCount) {
+    for (const PresetValue& v : kPresets[state.presetIndex].values) {
+      if (v.param == static_cast<int>(param)) {
+        value = v.value;
+        break;
+      }
+    }
+  }
+  return value;
+}
+
+void Panel::refreshPresetDirty(const Shared& shared,
+                               PanelState& state) const {
+  if (state.presetIndex < 0 || state.presetIndex >= kPresetCount) {
+    state.presetDirty = true;
+    return;
+  }
+  for (uint32_t p = 0; p < P_COUNT; ++p) {
+    if (p == P_MODULE || p == P_METER) continue;
+    if (std::fabs(shared.get(p) - presetValue(state, p)) > 1.0e-6) {
+      state.presetDirty = true;
+      return;
+    }
+  }
+  state.presetDirty = false;
 }
 
 void Panel::applyPreset(Shared& shared, PanelState& state, int index) const {

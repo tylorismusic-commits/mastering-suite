@@ -335,6 +335,17 @@ int main(int argc, char** argv) {
         XFlush(dpy);
         std::this_thread::sleep_for(std::chrono::milliseconds(150));
       };
+      auto doubleClick = [&](int x, int y) {
+        const int sx = originX + x, sy = originY + y;
+        XTestFakeMotionEvent(dpy, -1, sx, sy, CurrentTime);
+        for (int i = 0; i < 2; ++i) {
+          XTestFakeButtonEvent(dpy, 1, True, CurrentTime);
+          XTestFakeButtonEvent(dpy, 1, False, CurrentTime);
+          XFlush(dpy);
+          std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(120));
+      };
       auto rightClick = [&](int x, int y) {
         XTestFakeMotionEvent(dpy, -1, originX + x, originY + y, CurrentTime);
         XTestFakeButtonEvent(dpy, 3, True, CurrentTime);
@@ -377,6 +388,18 @@ int main(int argc, char** argv) {
       key(XK_Return);
       check(std::fabs(paramValue(mastering::P_EQ_LOW_GAIN) - 0.25) < 1e-4,
             "right-click typed value enters -6 dB");
+      doubleClick(220, 455);
+      check(std::fabs(paramValue(mastering::P_EQ_LOW_GAIN) - 0.5) < 1e-4,
+            "double-click resets to the parameter default");
+
+      // With a preset selected, double-click restores that preset's value.
+      click(384, 32);
+      click(384, 32);
+      click(384, 32);
+      doubleClick(220, 455);
+      check(std::fabs(paramValue(mastering::P_EQ_LOW_GAIN) - 0.52) < 1e-4,
+            "double-click respects the selected preset");
+
       click(320, 90);
       check(paramValue(mastering::P_MODULE) == 1.0,
             "clicking COMP selects the compressor");
