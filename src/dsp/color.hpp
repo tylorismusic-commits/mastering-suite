@@ -21,6 +21,7 @@ public:
     driveSmooth_.setTime(15.0f, rate_);
     mixSmooth_.setTime(10.0f, rate_);
     levelSmooth_.setTime(15.0f, rate_);
+    makeupSmooth_.setTime(20.0f, rate_);
     enableSmooth_.setTime(8.0f, rate_);
     reset();
     setFilters();
@@ -30,7 +31,14 @@ public:
     controls_ = c;
     model_ = std::min(std::max(c.model, 0), static_cast<int>(ColorModel::Count) - 1);
     clip_ = std::min(std::max(c.clip, 0), 2);
-    driveSmooth_.setTarget(hdsp::dbToGain(-12.0f + 24.0f * clamp01(c.drive)));
+    const float d = clamp01(c.drive);
+    driveSmooth_.setTarget(hdsp::dbToGain(-12.0f + 24.0f * d));
+    // Keep the Drive control from doubling as an 18 dB level control.  The
+    // curve undoes most of the drive gain and the shaper's compression loss;
+    // Level remains the final manual trim.
+    const float compDb =
+        12.0f - 24.0f * d + 5.0f * d * d - kModelTrimDb[model_];
+    makeupSmooth_.setTarget(hdsp::dbToGain(compDb));
     mixSmooth_.setTarget(clamp01(c.mix));
     levelSmooth_.setTarget(colorLevelGain(c.level));
     enableSmooth_.setTarget(c.enabled ? 1.0f : 0.0f);
@@ -41,6 +49,7 @@ public:
     driveSmooth_.snap();
     mixSmooth_.snap();
     levelSmooth_.snap();
+    makeupSmooth_.snap();
     enableSmooth_.snap();
   }
 
@@ -58,6 +67,7 @@ public:
     const float drive = driveSmooth_.next();
     const float mix = mixSmooth_.next();
     const float level = levelSmooth_.next();
+    const float makeup = makeupSmooth_.next();
     const float gate = enableSmooth_.next();
 
     const float dryL = left;
@@ -77,8 +87,8 @@ public:
     }
     xL = hp_[0].process(xL);
     xR = hp_[1].process(xR);
-    xL *= trim;
-    xR *= trim;
+    xL *= trim * makeup;
+    xR *= trim * makeup;
     xL = applyClip(xL);
     xR = applyClip(xR);
 
@@ -190,6 +200,7 @@ private:
   hdsp::Smoothed driveSmooth_;
   hdsp::Smoothed mixSmooth_;
   hdsp::Smoothed levelSmooth_;
+  hdsp::Smoothed makeupSmooth_;
   hdsp::Smoothed enableSmooth_;
   hdsp::Biquad pre_[2];
   hdsp::Biquad tone_[2];

@@ -33,6 +33,11 @@ enum Lv2Meter : uint32_t {
   kLv2Correlation,
   kLv2CompGr,
   kLv2LimitGr,
+  kLv2TruePeakMax,
+  kLv2SamplePeakMax,
+  kLv2ShortTermMax,
+  kLv2Plr,
+  kLv2Psr,
   kLv2MeterCount
 };
 
@@ -43,11 +48,11 @@ constexpr uint32_t kLv2SampleRate = kLv2FirstSpectrum + kLv2SpectrumCount;
 constexpr uint32_t kLv2Latency = kLv2SampleRate + 1;
 constexpr uint32_t kLv2PortCount = kLv2Latency + 1;
 
-static_assert(kLv2MeterReset == 44, "port layout drifted");
-static_assert(kLv2FirstMeter == 45, "port layout drifted");
-static_assert(kLv2FirstSpectrum == 58, "port layout drifted");
-static_assert(kLv2SampleRate == 186, "port layout drifted");
-static_assert(kLv2Latency == 187, "port layout drifted");
-static_assert(kLv2PortCount == 188, "port layout drifted");
+static_assert(kLv2MeterReset == 46, "port layout drifted");
+static_assert(kLv2FirstMeter == 47, "port layout drifted");
+static_assert(kLv2FirstSpectrum == 65, "port layout drifted");
+static_assert(kLv2SampleRate == 193, "port layout drifted");
+static_assert(kLv2Latency == 194, "port layout drifted");
+static_assert(kLv2PortCount == 195, "port layout drifted");
 
 } // namespace mastering

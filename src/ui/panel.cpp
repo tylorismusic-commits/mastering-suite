@@ -76,7 +76,9 @@ const char* const kScaleKnee[] = {"0", "", "", "", "12"};
 const char* const kScaleScHpf[] = {"20", "", "", "", "200"};
 const char* const kScaleDensity[] = {"0", "", "", "", "100"};
 const char* const kScaleCeiling[] = {"-6", "", "", "", "0"};
-const char* const kScaleLimitRelease[] = {"20", "", "", "", "500"};
+const char* const kScaleLimitRelease[] = {"20", "", "", "", "1k"};
+const char* const kScaleTilt[] = {"-6", "", "", "", "+6"};
+const char* const kOsUiLabels[] = {"OS OFF", "OS 2x", "OS 4x"};
 
 constexpr double kPi = 3.14159265358979323846;
 
@@ -315,9 +317,9 @@ void Panel::layout(const Shared& shared) {
     widgets_.push_back(led);
   }
 
-  static const char* kMeterTabs[3] = {"SPECTRUM", "LOUDNESS", "GR"};
+  static const char* kMeterTabs[4] = {"SPECTRUM", "LOUDNESS", "GR", "PEAKS"};
   const double meterTabW = 78.0;
-  for (int i = 0; i < 3; ++i) {
+  for (int i = 0; i < 4; ++i) {
     Widget m{};
     m.kind = Kind::MeterTab;
     m.param = P_METER;
@@ -331,14 +333,15 @@ void Panel::layout(const Shared& shared) {
   }
 
   if (module == 0) {
-    knob(P_EQ_LOW_GAIN, 220, 455, 30, "LOW GAIN", sc(kScaleGain));
-    knob(P_EQ_LOW_FREQ, 400, 455, 30, "LOW FREQ", sc(kScaleFreqLow));
-    knob(P_EQ_MID_GAIN, 580, 455, 30, "MID GAIN", sc(kScaleGain));
-    knob(P_EQ_MID_FREQ, 760, 455, 30, "MID FREQ", sc(kScaleFreqMid));
-    knob(P_EQ_MID_Q, 220, 560, 26, "MID Q", sc(kScaleQ));
-    knob(P_EQ_HIGH_GAIN, 400, 560, 26, "HIGH GAIN", sc(kScaleGain));
-    knob(P_EQ_HIGH_FREQ, 580, 560, 26, "HIGH FREQ", sc(kScaleFreqHigh));
-    knob(P_EQ_HPF, 760, 560, 26, "HPF", sc(kScaleHpf));
+    knob(P_EQ_LOW_GAIN, 250, 440, 26, "LOW GAIN", sc(kScaleGain));
+    knob(P_EQ_LOW_FREQ, 385, 440, 26, "LOW FREQ", sc(kScaleFreqLow));
+    knob(P_EQ_MID_GAIN, 520, 440, 26, "MID GAIN", sc(kScaleGain));
+    knob(P_EQ_MID_FREQ, 655, 440, 26, "MID FREQ", sc(kScaleFreqMid));
+    knob(P_EQ_MID_Q, 790, 440, 26, "MID Q", sc(kScaleQ));
+    knob(P_EQ_HIGH_GAIN, 317.5, 550, 26, "HIGH GAIN", sc(kScaleGain));
+    knob(P_EQ_HIGH_FREQ, 452.5, 550, 26, "HIGH FREQ", sc(kScaleFreqHigh));
+    knob(P_EQ_TILT, 587.5, 550, 26, "TILT", sc(kScaleTilt));
+    knob(P_EQ_HPF, 722.5, 550, 26, "HPF", sc(kScaleHpf));
   } else if (module == 1) {
     knob(P_COMP_THRESHOLD, 220, 455, 30, "THRESHOLD", sc(kScaleThreshold));
     knob(P_COMP_RATIO, 400, 455, 30, "RATIO", sc(kRatioLabels));
@@ -366,7 +369,8 @@ void Panel::layout(const Shared& shared) {
     knob(P_LIMIT_INPUT, 300, 480, 38, "IN GAIN", sc(kScaleGain));
     knob(P_LIMIT_CEILING, 520, 480, 38, "CEILING", sc(kScaleCeiling));
     knob(P_LIMIT_RELEASE, 740, 480, 38, "RELEASE", sc(kScaleLimitRelease));
-    pill(P_LIMIT_TRUE_PEAK, 460, 570, 120, 26, "TRUE PEAK");
+    pill(P_LIMIT_TRUE_PEAK, 380, 570, 120, 26, "TRUE PEAK");
+    cycle(P_LIMIT_OS, 540, 570, 120, 26, sc(kOsUiLabels));
   }
 
   pill(moduleOnParam(module), 875, 348, 90, 26, "ON");
@@ -390,11 +394,11 @@ void Panel::draw(cairo_t* cr, Shared& shared, const PanelState& state) {
                  -60.0, 3.0, true);
 
   static const char* const kCaptions[5] = {
-      "Broad shelves, a wide mid bell and a gentle high-pass.",
+      "Broad shelves, a wide mid bell, tilt and a gentle high-pass.",
       "Stereo-linked bus compressor with side-chain filter and mix.",
       "Single-band Patina colour: five models, drive, tone and level.",
       "Harmonic density and weight without adding fizz.",
-      "Five-millisecond lookahead with a true-peak ceiling."};
+      "Five-millisecond lookahead, true-peak ceiling and up to 4x oversampling."};
   const int module =
       std::clamp(static_cast<int>(shared.get(P_MODULE) + 0.5), 0, 4);
   text(cr, kCaptions[module], 190, 366, 11.5, 0, 0.72, 0.76, 0.80);
@@ -544,13 +548,15 @@ void Panel::drawDisplay(cairo_t* cr, const Shared& shared,
   cairo_pattern_destroy(face);
 
   const int mode =
-      std::clamp(static_cast<int>(shared.get(P_METER) + 0.5), 0, 2);
+      std::clamp(static_cast<int>(shared.get(P_METER) + 0.5), 0, 3);
   if (mode == 0) {
     drawSpectrum(cr, shared, state, 0, fx, fy, fw, fh, true);
   } else if (mode == 1) {
     drawLoudness(cr, state, 0, fx, fy, fw, fh);
-  } else {
+  } else if (mode == 2) {
     drawGr(cr, state, 0, fx, fy, fw, fh);
+  } else {
+    drawPeaks(cr, state, fx, fy, fw, fh);
   }
 }
 
@@ -731,6 +737,34 @@ void Panel::drawGr(cairo_t* cr, const PanelState& state, int /*model*/,
   std::snprintf(buf, sizeof(buf), "TRUE PEAK  %.2f dBTP    CORRELATION  %+.2f",
                 state.truePeak, state.correlation);
   text(cr, buf, x0, y + h - 20, 12, 0, 0.10, 0.10, 0.10);
+}
+
+void Panel::drawPeaks(cairo_t* cr, const PanelState& state, double x,
+                      double y, double w, double h) const {
+  (void)h;
+  const double col[3] = {x + w * 0.2, x + w * 0.5, x + w * 0.8};
+  const char* headings[6] = {"TRUE PEAK MAX", "SAMPLE PEAK MAX", "PLR",
+                             "SHORT-TERM MAX", "PSR", "LRA"};
+  const char* units[6] = {"dBTP", "dBFS", "LU", "LUFS", "LU", "LU"};
+  char buf[6][32];
+  std::snprintf(buf[0], sizeof(buf[0]), "%.2f", state.truePeakMax);
+  std::snprintf(buf[1], sizeof(buf[1]), "%.2f", state.samplePeakMax);
+  std::snprintf(buf[2], sizeof(buf[2]), "%.1f", state.plr);
+  std::snprintf(buf[3], sizeof(buf[3]), "%.1f", state.shortTermMax);
+  std::snprintf(buf[4], sizeof(buf[4]), "%.1f", state.psr);
+  std::snprintf(buf[5], sizeof(buf[5]), "%.1f", state.lra);
+  for (int i = 0; i < 6; ++i) {
+    const int row = i / 3;
+    const int column = i % 3;
+    const double headY = y + (row == 0 ? 48.0 : 128.0);
+    const double valueY = y + (row == 0 ? 82.0 : 162.0);
+    const double unitY = y + (row == 0 ? 98.0 : 178.0);
+    text(cr, headings[i], col[column], headY, 9, 1, kSkin.meterScale.r,
+         kSkin.meterScale.g, kSkin.meterScale.b);
+    text(cr, buf[i], col[column], valueY, 30, 1, 0.10, 0.10, 0.10);
+    text(cr, units[i], col[column], unitY, 9, 1, kSkin.meterScale.r,
+         kSkin.meterScale.g, kSkin.meterScale.b);
+  }
 }
 
 void Panel::drawLeds(cairo_t* cr, const Shared& shared) const {
@@ -1036,6 +1070,11 @@ void Panel::tick(const Shared& shared, PanelState& state) const {
   state.correlation = shared.correlation.load();
   state.compGr = peakHold(state.compGr, shared.compGr.load(), 0.5f);
   state.limitGr = peakHold(state.limitGr, shared.limitGr.load(), 0.5f);
+  state.truePeakMax = shared.truePeakMax.load();
+  state.samplePeakMax = shared.samplePeakMax.load();
+  state.shortTermMax = shared.shortTermMax.load();
+  state.plr = shared.plr.load();
+  state.psr = shared.psr.load();
   for (int i = 0; i < kSpectrumBins; ++i) {
     const float target = shared.spectrum[i].load();
     state.spectrum[i] += (target - state.spectrum[i]) * 0.45f;

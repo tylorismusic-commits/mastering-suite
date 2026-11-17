@@ -293,7 +293,7 @@ int main(int argc, char** argv) {
   // Right-click a knob, type a value and commit it with Enter.
   if (idle) {
     writes.events.clear();
-    sendRightClick(dpy, window, 220, 455);  // Low Gain
+    sendRightClick(dpy, window, 250, 440);  // Low Gain
     idle->idle(handle);
     sendKey(dpy, window, XK_minus);
     sendKey(dpy, window, XK_6);

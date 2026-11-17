@@ -52,16 +52,16 @@ int main() {
     }
     const double ratio = std::sqrt(outP / inP);
     check(std::fabs(ratio - 1.0) < 0.03, "flat EQ passes unity");
-    check(e.latencySamples() == 240, "limiter reports 5 ms latency");
+    check(e.latencySamples() == 285, "4x limiter reports 285 samples latency");
   }
 
   // Latency follows the host sample rate.
   {
     MasteringEngine e;
     e.prepare(44100.0f);
-    check(e.latencySamples() == 220, "44.1 kHz latency is 220 samples");
+    check(e.latencySamples() == 265, "44.1 kHz latency is 265 samples");
     e.prepare(96000.0f);
-    check(e.latencySamples() == 480, "96 kHz latency is 480 samples");
+    check(e.latencySamples() == 525, "96 kHz latency is 525 samples");
     Meters m;
     std::vector<float> l(kFrames), r(kFrames);
     sine(l, r, 0, 0.2f, 1000.0f);
@@ -71,6 +71,28 @@ int main() {
       if (!std::isfinite(v)) finite = false;
     }
     check(finite, "96 kHz processing stays finite");
+  }
+
+  // The oversampling selector does not move the reported latency.
+  {
+    MasteringEngine e;
+    e.prepare(kSr);
+    Controls c;
+    Meters m;
+    std::vector<float> l(kFrames), r(kFrames);
+    for (int os = 0; os <= 2; ++os) {
+      c.limiter.oversample = os;
+      e.setControls(c);
+      sine(l, r, 0, 0.2f, 1000.0f);
+      e.process(l.data(), r.data(), kFrames, m);
+      check(e.latencySamples() == 285,
+            "limiter latency stays constant across oversampling");
+      bool finite = true;
+      for (float v : l) {
+        if (!std::isfinite(v)) finite = false;
+      }
+      check(finite, "oversampled limiter stays finite");
+    }
   }
 
   // Bus compressor produces gain reduction.
@@ -184,6 +206,92 @@ int main() {
     check(finite, "colour and density stay finite");
   }
 
+  // Colour Drive is level-compensated by the internal auto-gain.
+  {
+    auto colourRms = [](float drive) {
+      MasteringEngine e;
+      e.prepare(kSr);
+      Controls c;
+      c.eq.enabled = false;
+      c.comp.enabled = false;
+      c.density.enabled = false;
+      c.limiter.enabled = false;
+      c.color.enabled = true;
+      c.color.model = 0;
+      c.color.drive = drive;
+      c.color.character = 0.5f;
+      c.color.tone = 0.5f;
+      c.color.mix = 1.0f;
+      c.color.level = 0.5f;
+      e.setControls(c);
+      Meters m;
+      std::vector<float> l(kFrames), r(kFrames);
+      double sum = 0.0;
+      int count = 0;
+      for (int b = 0; b < 400; ++b) {
+        sine(l, r, b, 0.1f, 1000.0f);
+        e.process(l.data(), r.data(), kFrames, m);
+        if (b > 200) {
+          for (float v : l) {
+            sum += static_cast<double>(v) * v;
+            ++count;
+          }
+        }
+      }
+      return std::sqrt(sum / count);
+    };
+    const double inputRms = 0.1 / std::sqrt(2.0);
+    for (float drive : {0.0f, 0.45f, 1.0f}) {
+      const double rms = colourRms(drive);
+      const double delta = 20.0 * std::log10(rms / inputRms);
+      check(std::fabs(delta) < 2.0,
+            "colour drive stays within 2 dB of unity");
+    }
+  }
+
+  // Compressor auto gain compensates the mix, not just the wet path.
+  {
+    auto compRms = [](bool autoGain) {
+      MasteringEngine e;
+      e.prepare(kSr);
+      Controls c;
+      c.eq.enabled = false;
+      c.color.enabled = false;
+      c.density.enabled = false;
+      c.limiter.enabled = false;
+      c.comp.enabled = true;
+      c.comp.threshold = 0.2f;
+      c.comp.ratio = 2.0f;
+      c.comp.attack = 0.1f;
+      c.comp.release = 0.4f;
+      c.comp.mix = 1.0f;
+      c.comp.autoGain = autoGain;
+      e.setControls(c);
+      Meters m;
+      std::vector<float> l(kFrames), r(kFrames);
+      double sum = 0.0;
+      int count = 0;
+      for (int b = 0; b < 240; ++b) {
+        sine(l, r, b, 0.5f, 500.0f);
+        e.process(l.data(), r.data(), kFrames, m);
+        if (b > 120) {
+          for (float v : l) {
+            sum += static_cast<double>(v) * v;
+            ++count;
+          }
+        }
+      }
+      return std::sqrt(sum / count);
+    };
+    const double noAuto = compRms(false);
+    const double autoGain = compRms(true);
+    check(autoGain > noAuto * 1.05,
+          "compressor auto gain restores level after compression");
+    check(std::fabs(20.0 * std::log10(autoGain / (0.5 / std::sqrt(2.0)))) <
+              1.5,
+          "compressor auto gain lands near unity");
+  }
+
   // Colour-stage soft and hard clipping.
   {
     auto runClip = [](int clip, float& peak) {
@@ -245,6 +353,11 @@ int main() {
     check(m.lufsMomentary > -50.0f && m.lufsMomentary < 0.0f,
           "momentary LUFS is populated");
     check(m.lufsIntegrated > -50.0f, "integrated LUFS is populated");
+    check(m.truePeakMax > -50.0f, "true-peak max hold is populated");
+    check(m.samplePeakMax > -50.0f, "sample-peak max hold is populated");
+    check(m.shortTermMax > -50.0f, "short-term max hold is populated");
+    check(m.plr > 0.0f, "PLR is populated");
+    check(m.psr > 0.0f, "PSR is populated");
     bool spectrum = false;
     const float* bins = e.spectrumBins();
     for (int i = 0; i < kSpectrumBins; ++i) {
@@ -282,12 +395,15 @@ int main() {
     c.limiter.enabled = false;
     e.setControls(c);
     Meters m;
-    std::vector<float> l(kFrames), r(kFrames);
-    sine(l, r, 0, 0.25f, 1000.0f);
-    e.process(l.data(), r.data(), kFrames, m);
+    std::vector<float> l(512), r(512);
+    for (int i = 0; i < 512; ++i) {
+      l[i] = r[i] = 0.25f * std::sin(
+          2.0f * 3.141592653589793f * 1000.0f * i / kSr);
+    }
+    e.process(l.data(), r.data(), 512, m);
     const double expected =
         0.25 * std::sin(2.0 * 3.141592653589793 * 1000.0 * 10.0 / kSr);
-    check(std::fabs(l[250] - expected) < 0.01,
+    check(std::fabs(l[295] - expected) < 0.01,
           "fresh instance starts at full gain (no fade-in)");
   }
 

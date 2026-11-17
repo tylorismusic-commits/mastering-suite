@@ -221,15 +221,18 @@ std::string buildPluginTtl() {
 
   const char* const meterSymbols[mastering::kLv2MeterCount] = {
       "in_peak_l",     "in_peak_r",   "out_peak_l",   "out_peak_r",
-      "true_peak_l",   "true_peak_r", "lufs_integrated", "lufs_short_term",
-      "lufs_momentary", "lra",        "correlation",  "comp_gr",
-      "limit_gr"};
+      "true_peak_l",      "true_peak_r",    "lufs_integrated",
+      "lufs_short_term",  "lufs_momentary", "lra",
+      "correlation",      "comp_gr",        "limit_gr",
+      "true_peak_max",    "sample_peak_max","short_term_max",
+      "plr",              "psr"};
   const char* const meterNames[mastering::kLv2MeterCount] = {
       "Input Peak Left",     "Input Peak Right",    "Output Peak Left",
       "Output Peak Right",   "True Peak Left",      "True Peak Right",
       "Integrated LUFS",     "Short-term LUFS",     "Momentary LUFS",
       "Loudness Range",      "Stereo Correlation",  "Compressor GR",
-      "Limiter GR"};
+      "Limiter GR",          "True Peak Max",       "Sample Peak Max",
+      "Short-term Max",      "PLR",                 "PSR"};
   for (uint32_t i = 0; i < mastering::kLv2MeterCount; ++i) {
     double minimum = -120.0;
     double maximum = 24.0;
@@ -250,6 +253,11 @@ std::string buildPluginTtl() {
       minimum = 0.0;
       maximum = 40.0;
       def = 0.0;
+    } else if (i == mastering::kLv2Plr || i == mastering::kLv2Psr) {
+      minimum = 0.0;
+      maximum = 60.0;
+      def = 0.0;
+      unit = nullptr;
     }
     ports.push_back(portBlock(
         static_cast<int>(mastering::kLv2FirstMeter + i), meterSymbols[i],

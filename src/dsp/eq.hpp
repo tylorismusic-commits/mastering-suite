@@ -53,10 +53,13 @@ public:
     const float high = highFreqHz(c.highFreq);
     const float q = midQ(c.midQ);
     const float hp = hpfHz(c.hpf);
+    const float tilt = eqTiltDb(c.tilt);
     for (int ch = 0; ch < 2; ++ch) {
       low_[ch].lowShelf(low, lowGain, 0.65f, rate_);
       mid_[ch].peak(mid, midGain, q, rate_);
       high_[ch].highShelf(high, highGain, 0.65f, rate_);
+      tiltLow_[ch].lowShelf(120.0f, -0.5f * tilt, 0.7071f, rate_);
+      tiltHigh_[ch].highShelf(8000.0f, 0.5f * tilt, 0.7071f, rate_);
       hpf_[ch].highPass(hp, 0.7071f, rate_);
     }
   }
@@ -71,6 +74,10 @@ public:
     right = mid_[1].process(right);
     left = high_[0].process(left);
     right = high_[1].process(right);
+    left = tiltLow_[0].process(left);
+    right = tiltLow_[1].process(right);
+    left = tiltHigh_[0].process(left);
+    right = tiltHigh_[1].process(right);
     left = hpf_[0].process(left);
     right = hpf_[1].process(right);
   }
@@ -80,6 +87,8 @@ public:
       low_[ch].reset();
       mid_[ch].reset();
       high_[ch].reset();
+      tiltLow_[ch].reset();
+      tiltHigh_[ch].reset();
       hpf_[ch].reset();
     }
   }
@@ -92,6 +101,8 @@ public:
     return biquadGainDb(low_[0], hz, rate_) +
            biquadGainDb(mid_[0], hz, rate_) +
            biquadGainDb(high_[0], hz, rate_) +
+           biquadGainDb(tiltLow_[0], hz, rate_) +
+           biquadGainDb(tiltHigh_[0], hz, rate_) +
            biquadGainDb(hpf_[0], hz, rate_);
   }
 
@@ -102,6 +113,8 @@ private:
   hdsp::Biquad low_[2];
   hdsp::Biquad mid_[2];
   hdsp::Biquad high_[2];
+  hdsp::Biquad tiltLow_[2];
+  hdsp::Biquad tiltHigh_[2];
   hdsp::Biquad hpf_[2];
 };
 

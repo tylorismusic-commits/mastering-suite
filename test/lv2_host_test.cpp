@@ -274,6 +274,14 @@ int main(int argc, char** argv) {
         "integrated LUFS port reports activity");
   check(values[meters + mastering::kLv2Correlation] > 0.9f,
         "correlation reports a coherent stereo signal");
+  check(values[meters + mastering::kLv2TruePeakMax] > -60.0f,
+        "true-peak max port reports activity");
+  check(values[meters + mastering::kLv2SamplePeakMax] > -60.0f,
+        "sample-peak max port reports activity");
+  check(values[meters + mastering::kLv2Plr] > 0.0f,
+        "PLR port reports activity");
+  check(values[meters + mastering::kLv2Psr] > 0.0f,
+        "PSR port reports activity");
   bool spectrum = false;
   for (uint32_t i = 0; i < mastering::kLv2SpectrumCount; ++i) {
     if (values[mastering::kLv2FirstSpectrum + i] > -110.0f) {
@@ -283,8 +291,8 @@ int main(int argc, char** argv) {
   check(spectrum, "spectrum ports report activity");
   check(values[mastering::kLv2SampleRate] == 48000.0f,
         "sample-rate port reports the host rate");
-  check(values[mastering::kLv2Latency] == 240.0f,
-        "latency port reports 5 ms (240 samples)");
+  check(values[mastering::kLv2Latency] == 285.0f,
+        "latency port reports the 4x limiter latency");
 
   // Rising-edge meter reset clears the integrated history.
   values[mastering::kLv2MeterReset] = 1.0f;

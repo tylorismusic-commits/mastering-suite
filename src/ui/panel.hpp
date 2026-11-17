@@ -38,6 +38,11 @@ struct PanelState {
   float correlation = 0.0f;
   float compGr = 0.0f;
   float limitGr = 0.0f;
+  float truePeakMax = -120.0f;
+  float samplePeakMax = -120.0f;
+  float shortTermMax = -120.0f;
+  float plr = 0.0f;
+  float psr = 0.0f;
   float spectrum[kSpectrumBins] = {};
 };
 
@@ -110,6 +115,8 @@ private:
                     double y, double w, double h) const;
   void drawGr(cairo_t* cr, const PanelState& state, int model, double x,
               double y, double w, double h) const;
+  void drawPeaks(cairo_t* cr, const PanelState& state, double x, double y,
+                 double w, double h) const;
   void drawLeds(cairo_t* cr, const Shared& shared) const;
   void drawLevelMeter(cairo_t* cr, double x, double y, double w, double h,
                       double dbL, double dbR, double minDb, double maxDb,

@@ -21,7 +21,7 @@
     ] ;
     doap:homepage <https://github.com/tylorismusic-commits/mastering-suite> ;
     lv2:majorVersion 0 ;
-    lv2:minorVersion 4 ;
+    lv2:minorVersion 5 ;
     lv2:microVersion 0 ;
     lv2:binary <mastering_suite.so> ;
     rdfs:seeAlso <manifest.ttl> ;
@@ -90,11 +90,12 @@
         lv2:name "Meter" ;
         lv2:default 0 ;
         lv2:minimum 0 ;
-        lv2:maximum 2 ;
+        lv2:maximum 3 ;
         lv2:integer true ;
         lv2:scalePoint [ rdf:value 0 ; rdfs:label "Spectrum" ] ,
             [ rdf:value 1 ; rdfs:label "Loudness" ] ,
-            [ rdf:value 2 ; rdfs:label "GR" ] ;
+            [ rdf:value 2 ; rdfs:label "GR" ] ,
+            [ rdf:value 3 ; rdfs:label "Peaks" ] ;
         lv2:portProperty pprops:notOnGUI ;
         pg:group <https://github.com/tylorismusic-commits/mastering-suite#global> ;
     ] ,
@@ -496,6 +497,30 @@
     [
         a lv2:InputPort , lv2:ControlPort ;
         lv2:index 44 ;
+        lv2:symbol "limiter_os" ;
+        lv2:name "Oversampling" ;
+        lv2:default 2 ;
+        lv2:minimum 0 ;
+        lv2:maximum 2 ;
+        lv2:integer true ;
+        lv2:scalePoint [ rdf:value 0 ; rdfs:label "Off" ] ,
+            [ rdf:value 1 ; rdfs:label "2x" ] ,
+            [ rdf:value 2 ; rdfs:label "4x" ] ;
+        pg:group <https://github.com/tylorismusic-commits/mastering-suite#limiter> ;
+    ] ,
+    [
+        a lv2:InputPort , lv2:ControlPort ;
+        lv2:index 45 ;
+        lv2:symbol "eq_tilt" ;
+        lv2:name "Tilt" ;
+        lv2:default 0.5 ;
+        lv2:minimum 0 ;
+        lv2:maximum 1 ;
+        pg:group <https://github.com/tylorismusic-commits/mastering-suite#eq> ;
+    ] ,
+    [
+        a lv2:InputPort , lv2:ControlPort ;
+        lv2:index 46 ;
         lv2:symbol "meter_reset" ;
         lv2:name "Meter Reset" ;
         lv2:default 0 ;
@@ -507,7 +532,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 45 ;
+        lv2:index 47 ;
         lv2:symbol "in_peak_l" ;
         lv2:name "Input Peak Left" ;
         lv2:default -120 ;
@@ -519,7 +544,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 46 ;
+        lv2:index 48 ;
         lv2:symbol "in_peak_r" ;
         lv2:name "Input Peak Right" ;
         lv2:default -120 ;
@@ -531,7 +556,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 47 ;
+        lv2:index 49 ;
         lv2:symbol "out_peak_l" ;
         lv2:name "Output Peak Left" ;
         lv2:default -120 ;
@@ -543,7 +568,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 48 ;
+        lv2:index 50 ;
         lv2:symbol "out_peak_r" ;
         lv2:name "Output Peak Right" ;
         lv2:default -120 ;
@@ -555,7 +580,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 49 ;
+        lv2:index 51 ;
         lv2:symbol "true_peak_l" ;
         lv2:name "True Peak Left" ;
         lv2:default -120 ;
@@ -567,7 +592,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 50 ;
+        lv2:index 52 ;
         lv2:symbol "true_peak_r" ;
         lv2:name "True Peak Right" ;
         lv2:default -120 ;
@@ -579,7 +604,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 51 ;
+        lv2:index 53 ;
         lv2:symbol "lufs_integrated" ;
         lv2:name "Integrated LUFS" ;
         lv2:default -120 ;
@@ -591,7 +616,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 52 ;
+        lv2:index 54 ;
         lv2:symbol "lufs_short_term" ;
         lv2:name "Short-term LUFS" ;
         lv2:default -120 ;
@@ -603,7 +628,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 53 ;
+        lv2:index 55 ;
         lv2:symbol "lufs_momentary" ;
         lv2:name "Momentary LUFS" ;
         lv2:default -120 ;
@@ -615,7 +640,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 54 ;
+        lv2:index 56 ;
         lv2:symbol "lra" ;
         lv2:name "Loudness Range" ;
         lv2:default 0 ;
@@ -626,7 +651,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 55 ;
+        lv2:index 57 ;
         lv2:symbol "correlation" ;
         lv2:name "Stereo Correlation" ;
         lv2:default 0 ;
@@ -637,7 +662,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 56 ;
+        lv2:index 58 ;
         lv2:symbol "comp_gr" ;
         lv2:name "Compressor GR" ;
         lv2:default 0 ;
@@ -649,7 +674,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 57 ;
+        lv2:index 59 ;
         lv2:symbol "limit_gr" ;
         lv2:name "Limiter GR" ;
         lv2:default 0 ;
@@ -661,7 +686,65 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 58 ;
+        lv2:index 60 ;
+        lv2:symbol "true_peak_max" ;
+        lv2:name "True Peak Max" ;
+        lv2:default -120 ;
+        lv2:minimum -120 ;
+        lv2:maximum 24 ;
+        units:unit units:db ;
+        lv2:portProperty pprops:notOnGUI ;
+        pg:group <https://github.com/tylorismusic-commits/mastering-suite#meter> ;
+    ] ,
+    [
+        a lv2:OutputPort , lv2:ControlPort ;
+        lv2:index 61 ;
+        lv2:symbol "sample_peak_max" ;
+        lv2:name "Sample Peak Max" ;
+        lv2:default -120 ;
+        lv2:minimum -120 ;
+        lv2:maximum 24 ;
+        units:unit units:db ;
+        lv2:portProperty pprops:notOnGUI ;
+        pg:group <https://github.com/tylorismusic-commits/mastering-suite#meter> ;
+    ] ,
+    [
+        a lv2:OutputPort , lv2:ControlPort ;
+        lv2:index 62 ;
+        lv2:symbol "short_term_max" ;
+        lv2:name "Short-term Max" ;
+        lv2:default -120 ;
+        lv2:minimum -120 ;
+        lv2:maximum 24 ;
+        units:unit units:db ;
+        lv2:portProperty pprops:notOnGUI ;
+        pg:group <https://github.com/tylorismusic-commits/mastering-suite#meter> ;
+    ] ,
+    [
+        a lv2:OutputPort , lv2:ControlPort ;
+        lv2:index 63 ;
+        lv2:symbol "plr" ;
+        lv2:name "PLR" ;
+        lv2:default 0 ;
+        lv2:minimum 0 ;
+        lv2:maximum 60 ;
+        lv2:portProperty pprops:notOnGUI ;
+        pg:group <https://github.com/tylorismusic-commits/mastering-suite#meter> ;
+    ] ,
+    [
+        a lv2:OutputPort , lv2:ControlPort ;
+        lv2:index 64 ;
+        lv2:symbol "psr" ;
+        lv2:name "PSR" ;
+        lv2:default 0 ;
+        lv2:minimum 0 ;
+        lv2:maximum 60 ;
+        lv2:portProperty pprops:notOnGUI ;
+        pg:group <https://github.com/tylorismusic-commits/mastering-suite#meter> ;
+    ] ,
+    [
+        a lv2:OutputPort , lv2:ControlPort ;
+        lv2:index 65 ;
         lv2:symbol "spectrum_0" ;
         lv2:name "Spectrum 0" ;
         lv2:default -120 ;
@@ -673,7 +756,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 59 ;
+        lv2:index 66 ;
         lv2:symbol "spectrum_1" ;
         lv2:name "Spectrum 1" ;
         lv2:default -120 ;
@@ -685,7 +768,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 60 ;
+        lv2:index 67 ;
         lv2:symbol "spectrum_2" ;
         lv2:name "Spectrum 2" ;
         lv2:default -120 ;
@@ -697,7 +780,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 61 ;
+        lv2:index 68 ;
         lv2:symbol "spectrum_3" ;
         lv2:name "Spectrum 3" ;
         lv2:default -120 ;
@@ -709,7 +792,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 62 ;
+        lv2:index 69 ;
         lv2:symbol "spectrum_4" ;
         lv2:name "Spectrum 4" ;
         lv2:default -120 ;
@@ -721,7 +804,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 63 ;
+        lv2:index 70 ;
         lv2:symbol "spectrum_5" ;
         lv2:name "Spectrum 5" ;
         lv2:default -120 ;
@@ -733,7 +816,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 64 ;
+        lv2:index 71 ;
         lv2:symbol "spectrum_6" ;
         lv2:name "Spectrum 6" ;
         lv2:default -120 ;
@@ -745,7 +828,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 65 ;
+        lv2:index 72 ;
         lv2:symbol "spectrum_7" ;
         lv2:name "Spectrum 7" ;
         lv2:default -120 ;
@@ -757,7 +840,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 66 ;
+        lv2:index 73 ;
         lv2:symbol "spectrum_8" ;
         lv2:name "Spectrum 8" ;
         lv2:default -120 ;
@@ -769,7 +852,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 67 ;
+        lv2:index 74 ;
         lv2:symbol "spectrum_9" ;
         lv2:name "Spectrum 9" ;
         lv2:default -120 ;
@@ -781,7 +864,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 68 ;
+        lv2:index 75 ;
         lv2:symbol "spectrum_10" ;
         lv2:name "Spectrum 10" ;
         lv2:default -120 ;
@@ -793,7 +876,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 69 ;
+        lv2:index 76 ;
         lv2:symbol "spectrum_11" ;
         lv2:name "Spectrum 11" ;
         lv2:default -120 ;
@@ -805,7 +888,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 70 ;
+        lv2:index 77 ;
         lv2:symbol "spectrum_12" ;
         lv2:name "Spectrum 12" ;
         lv2:default -120 ;
@@ -817,7 +900,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 71 ;
+        lv2:index 78 ;
         lv2:symbol "spectrum_13" ;
         lv2:name "Spectrum 13" ;
         lv2:default -120 ;
@@ -829,7 +912,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 72 ;
+        lv2:index 79 ;
         lv2:symbol "spectrum_14" ;
         lv2:name "Spectrum 14" ;
         lv2:default -120 ;
@@ -841,7 +924,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 73 ;
+        lv2:index 80 ;
         lv2:symbol "spectrum_15" ;
         lv2:name "Spectrum 15" ;
         lv2:default -120 ;
@@ -853,7 +936,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 74 ;
+        lv2:index 81 ;
         lv2:symbol "spectrum_16" ;
         lv2:name "Spectrum 16" ;
         lv2:default -120 ;
@@ -865,7 +948,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 75 ;
+        lv2:index 82 ;
         lv2:symbol "spectrum_17" ;
         lv2:name "Spectrum 17" ;
         lv2:default -120 ;
@@ -877,7 +960,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 76 ;
+        lv2:index 83 ;
         lv2:symbol "spectrum_18" ;
         lv2:name "Spectrum 18" ;
         lv2:default -120 ;
@@ -889,7 +972,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 77 ;
+        lv2:index 84 ;
         lv2:symbol "spectrum_19" ;
         lv2:name "Spectrum 19" ;
         lv2:default -120 ;
@@ -901,7 +984,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 78 ;
+        lv2:index 85 ;
         lv2:symbol "spectrum_20" ;
         lv2:name "Spectrum 20" ;
         lv2:default -120 ;
@@ -913,7 +996,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 79 ;
+        lv2:index 86 ;
         lv2:symbol "spectrum_21" ;
         lv2:name "Spectrum 21" ;
         lv2:default -120 ;
@@ -925,7 +1008,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 80 ;
+        lv2:index 87 ;
         lv2:symbol "spectrum_22" ;
         lv2:name "Spectrum 22" ;
         lv2:default -120 ;
@@ -937,7 +1020,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 81 ;
+        lv2:index 88 ;
         lv2:symbol "spectrum_23" ;
         lv2:name "Spectrum 23" ;
         lv2:default -120 ;
@@ -949,7 +1032,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 82 ;
+        lv2:index 89 ;
         lv2:symbol "spectrum_24" ;
         lv2:name "Spectrum 24" ;
         lv2:default -120 ;
@@ -961,7 +1044,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 83 ;
+        lv2:index 90 ;
         lv2:symbol "spectrum_25" ;
         lv2:name "Spectrum 25" ;
         lv2:default -120 ;
@@ -973,7 +1056,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 84 ;
+        lv2:index 91 ;
         lv2:symbol "spectrum_26" ;
         lv2:name "Spectrum 26" ;
         lv2:default -120 ;
@@ -985,7 +1068,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 85 ;
+        lv2:index 92 ;
         lv2:symbol "spectrum_27" ;
         lv2:name "Spectrum 27" ;
         lv2:default -120 ;
@@ -997,7 +1080,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 86 ;
+        lv2:index 93 ;
         lv2:symbol "spectrum_28" ;
         lv2:name "Spectrum 28" ;
         lv2:default -120 ;
@@ -1009,7 +1092,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 87 ;
+        lv2:index 94 ;
         lv2:symbol "spectrum_29" ;
         lv2:name "Spectrum 29" ;
         lv2:default -120 ;
@@ -1021,7 +1104,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 88 ;
+        lv2:index 95 ;
         lv2:symbol "spectrum_30" ;
         lv2:name "Spectrum 30" ;
         lv2:default -120 ;
@@ -1033,7 +1116,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 89 ;
+        lv2:index 96 ;
         lv2:symbol "spectrum_31" ;
         lv2:name "Spectrum 31" ;
         lv2:default -120 ;
@@ -1045,7 +1128,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 90 ;
+        lv2:index 97 ;
         lv2:symbol "spectrum_32" ;
         lv2:name "Spectrum 32" ;
         lv2:default -120 ;
@@ -1057,7 +1140,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 91 ;
+        lv2:index 98 ;
         lv2:symbol "spectrum_33" ;
         lv2:name "Spectrum 33" ;
         lv2:default -120 ;
@@ -1069,7 +1152,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 92 ;
+        lv2:index 99 ;
         lv2:symbol "spectrum_34" ;
         lv2:name "Spectrum 34" ;
         lv2:default -120 ;
@@ -1081,7 +1164,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 93 ;
+        lv2:index 100 ;
         lv2:symbol "spectrum_35" ;
         lv2:name "Spectrum 35" ;
         lv2:default -120 ;
@@ -1093,7 +1176,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 94 ;
+        lv2:index 101 ;
         lv2:symbol "spectrum_36" ;
         lv2:name "Spectrum 36" ;
         lv2:default -120 ;
@@ -1105,7 +1188,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 95 ;
+        lv2:index 102 ;
         lv2:symbol "spectrum_37" ;
         lv2:name "Spectrum 37" ;
         lv2:default -120 ;
@@ -1117,7 +1200,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 96 ;
+        lv2:index 103 ;
         lv2:symbol "spectrum_38" ;
         lv2:name "Spectrum 38" ;
         lv2:default -120 ;
@@ -1129,7 +1212,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 97 ;
+        lv2:index 104 ;
         lv2:symbol "spectrum_39" ;
         lv2:name "Spectrum 39" ;
         lv2:default -120 ;
@@ -1141,7 +1224,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 98 ;
+        lv2:index 105 ;
         lv2:symbol "spectrum_40" ;
         lv2:name "Spectrum 40" ;
         lv2:default -120 ;
@@ -1153,7 +1236,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 99 ;
+        lv2:index 106 ;
         lv2:symbol "spectrum_41" ;
         lv2:name "Spectrum 41" ;
         lv2:default -120 ;
@@ -1165,7 +1248,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 100 ;
+        lv2:index 107 ;
         lv2:symbol "spectrum_42" ;
         lv2:name "Spectrum 42" ;
         lv2:default -120 ;
@@ -1177,7 +1260,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 101 ;
+        lv2:index 108 ;
         lv2:symbol "spectrum_43" ;
         lv2:name "Spectrum 43" ;
         lv2:default -120 ;
@@ -1189,7 +1272,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 102 ;
+        lv2:index 109 ;
         lv2:symbol "spectrum_44" ;
         lv2:name "Spectrum 44" ;
         lv2:default -120 ;
@@ -1201,7 +1284,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 103 ;
+        lv2:index 110 ;
         lv2:symbol "spectrum_45" ;
         lv2:name "Spectrum 45" ;
         lv2:default -120 ;
@@ -1213,7 +1296,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 104 ;
+        lv2:index 111 ;
         lv2:symbol "spectrum_46" ;
         lv2:name "Spectrum 46" ;
         lv2:default -120 ;
@@ -1225,7 +1308,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 105 ;
+        lv2:index 112 ;
         lv2:symbol "spectrum_47" ;
         lv2:name "Spectrum 47" ;
         lv2:default -120 ;
@@ -1237,7 +1320,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 106 ;
+        lv2:index 113 ;
         lv2:symbol "spectrum_48" ;
         lv2:name "Spectrum 48" ;
         lv2:default -120 ;
@@ -1249,7 +1332,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 107 ;
+        lv2:index 114 ;
         lv2:symbol "spectrum_49" ;
         lv2:name "Spectrum 49" ;
         lv2:default -120 ;
@@ -1261,7 +1344,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 108 ;
+        lv2:index 115 ;
         lv2:symbol "spectrum_50" ;
         lv2:name "Spectrum 50" ;
         lv2:default -120 ;
@@ -1273,7 +1356,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 109 ;
+        lv2:index 116 ;
         lv2:symbol "spectrum_51" ;
         lv2:name "Spectrum 51" ;
         lv2:default -120 ;
@@ -1285,7 +1368,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 110 ;
+        lv2:index 117 ;
         lv2:symbol "spectrum_52" ;
         lv2:name "Spectrum 52" ;
         lv2:default -120 ;
@@ -1297,7 +1380,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 111 ;
+        lv2:index 118 ;
         lv2:symbol "spectrum_53" ;
         lv2:name "Spectrum 53" ;
         lv2:default -120 ;
@@ -1309,7 +1392,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 112 ;
+        lv2:index 119 ;
         lv2:symbol "spectrum_54" ;
         lv2:name "Spectrum 54" ;
         lv2:default -120 ;
@@ -1321,7 +1404,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 113 ;
+        lv2:index 120 ;
         lv2:symbol "spectrum_55" ;
         lv2:name "Spectrum 55" ;
         lv2:default -120 ;
@@ -1333,7 +1416,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 114 ;
+        lv2:index 121 ;
         lv2:symbol "spectrum_56" ;
         lv2:name "Spectrum 56" ;
         lv2:default -120 ;
@@ -1345,7 +1428,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 115 ;
+        lv2:index 122 ;
         lv2:symbol "spectrum_57" ;
         lv2:name "Spectrum 57" ;
         lv2:default -120 ;
@@ -1357,7 +1440,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 116 ;
+        lv2:index 123 ;
         lv2:symbol "spectrum_58" ;
         lv2:name "Spectrum 58" ;
         lv2:default -120 ;
@@ -1369,7 +1452,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 117 ;
+        lv2:index 124 ;
         lv2:symbol "spectrum_59" ;
         lv2:name "Spectrum 59" ;
         lv2:default -120 ;
@@ -1381,7 +1464,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 118 ;
+        lv2:index 125 ;
         lv2:symbol "spectrum_60" ;
         lv2:name "Spectrum 60" ;
         lv2:default -120 ;
@@ -1393,7 +1476,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 119 ;
+        lv2:index 126 ;
         lv2:symbol "spectrum_61" ;
         lv2:name "Spectrum 61" ;
         lv2:default -120 ;
@@ -1405,7 +1488,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 120 ;
+        lv2:index 127 ;
         lv2:symbol "spectrum_62" ;
         lv2:name "Spectrum 62" ;
         lv2:default -120 ;
@@ -1417,7 +1500,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 121 ;
+        lv2:index 128 ;
         lv2:symbol "spectrum_63" ;
         lv2:name "Spectrum 63" ;
         lv2:default -120 ;
@@ -1429,7 +1512,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 122 ;
+        lv2:index 129 ;
         lv2:symbol "spectrum_64" ;
         lv2:name "Spectrum 64" ;
         lv2:default -120 ;
@@ -1441,7 +1524,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 123 ;
+        lv2:index 130 ;
         lv2:symbol "spectrum_65" ;
         lv2:name "Spectrum 65" ;
         lv2:default -120 ;
@@ -1453,7 +1536,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 124 ;
+        lv2:index 131 ;
         lv2:symbol "spectrum_66" ;
         lv2:name "Spectrum 66" ;
         lv2:default -120 ;
@@ -1465,7 +1548,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 125 ;
+        lv2:index 132 ;
         lv2:symbol "spectrum_67" ;
         lv2:name "Spectrum 67" ;
         lv2:default -120 ;
@@ -1477,7 +1560,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 126 ;
+        lv2:index 133 ;
         lv2:symbol "spectrum_68" ;
         lv2:name "Spectrum 68" ;
         lv2:default -120 ;
@@ -1489,7 +1572,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 127 ;
+        lv2:index 134 ;
         lv2:symbol "spectrum_69" ;
         lv2:name "Spectrum 69" ;
         lv2:default -120 ;
@@ -1501,7 +1584,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 128 ;
+        lv2:index 135 ;
         lv2:symbol "spectrum_70" ;
         lv2:name "Spectrum 70" ;
         lv2:default -120 ;
@@ -1513,7 +1596,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 129 ;
+        lv2:index 136 ;
         lv2:symbol "spectrum_71" ;
         lv2:name "Spectrum 71" ;
         lv2:default -120 ;
@@ -1525,7 +1608,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 130 ;
+        lv2:index 137 ;
         lv2:symbol "spectrum_72" ;
         lv2:name "Spectrum 72" ;
         lv2:default -120 ;
@@ -1537,7 +1620,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 131 ;
+        lv2:index 138 ;
         lv2:symbol "spectrum_73" ;
         lv2:name "Spectrum 73" ;
         lv2:default -120 ;
@@ -1549,7 +1632,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 132 ;
+        lv2:index 139 ;
         lv2:symbol "spectrum_74" ;
         lv2:name "Spectrum 74" ;
         lv2:default -120 ;
@@ -1561,7 +1644,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 133 ;
+        lv2:index 140 ;
         lv2:symbol "spectrum_75" ;
         lv2:name "Spectrum 75" ;
         lv2:default -120 ;
@@ -1573,7 +1656,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 134 ;
+        lv2:index 141 ;
         lv2:symbol "spectrum_76" ;
         lv2:name "Spectrum 76" ;
         lv2:default -120 ;
@@ -1585,7 +1668,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 135 ;
+        lv2:index 142 ;
         lv2:symbol "spectrum_77" ;
         lv2:name "Spectrum 77" ;
         lv2:default -120 ;
@@ -1597,7 +1680,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 136 ;
+        lv2:index 143 ;
         lv2:symbol "spectrum_78" ;
         lv2:name "Spectrum 78" ;
         lv2:default -120 ;
@@ -1609,7 +1692,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 137 ;
+        lv2:index 144 ;
         lv2:symbol "spectrum_79" ;
         lv2:name "Spectrum 79" ;
         lv2:default -120 ;
@@ -1621,7 +1704,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 138 ;
+        lv2:index 145 ;
         lv2:symbol "spectrum_80" ;
         lv2:name "Spectrum 80" ;
         lv2:default -120 ;
@@ -1633,7 +1716,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 139 ;
+        lv2:index 146 ;
         lv2:symbol "spectrum_81" ;
         lv2:name "Spectrum 81" ;
         lv2:default -120 ;
@@ -1645,7 +1728,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 140 ;
+        lv2:index 147 ;
         lv2:symbol "spectrum_82" ;
         lv2:name "Spectrum 82" ;
         lv2:default -120 ;
@@ -1657,7 +1740,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 141 ;
+        lv2:index 148 ;
         lv2:symbol "spectrum_83" ;
         lv2:name "Spectrum 83" ;
         lv2:default -120 ;
@@ -1669,7 +1752,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 142 ;
+        lv2:index 149 ;
         lv2:symbol "spectrum_84" ;
         lv2:name "Spectrum 84" ;
         lv2:default -120 ;
@@ -1681,7 +1764,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 143 ;
+        lv2:index 150 ;
         lv2:symbol "spectrum_85" ;
         lv2:name "Spectrum 85" ;
         lv2:default -120 ;
@@ -1693,7 +1776,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 144 ;
+        lv2:index 151 ;
         lv2:symbol "spectrum_86" ;
         lv2:name "Spectrum 86" ;
         lv2:default -120 ;
@@ -1705,7 +1788,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 145 ;
+        lv2:index 152 ;
         lv2:symbol "spectrum_87" ;
         lv2:name "Spectrum 87" ;
         lv2:default -120 ;
@@ -1717,7 +1800,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 146 ;
+        lv2:index 153 ;
         lv2:symbol "spectrum_88" ;
         lv2:name "Spectrum 88" ;
         lv2:default -120 ;
@@ -1729,7 +1812,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 147 ;
+        lv2:index 154 ;
         lv2:symbol "spectrum_89" ;
         lv2:name "Spectrum 89" ;
         lv2:default -120 ;
@@ -1741,7 +1824,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 148 ;
+        lv2:index 155 ;
         lv2:symbol "spectrum_90" ;
         lv2:name "Spectrum 90" ;
         lv2:default -120 ;
@@ -1753,7 +1836,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 149 ;
+        lv2:index 156 ;
         lv2:symbol "spectrum_91" ;
         lv2:name "Spectrum 91" ;
         lv2:default -120 ;
@@ -1765,7 +1848,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 150 ;
+        lv2:index 157 ;
         lv2:symbol "spectrum_92" ;
         lv2:name "Spectrum 92" ;
         lv2:default -120 ;
@@ -1777,7 +1860,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 151 ;
+        lv2:index 158 ;
         lv2:symbol "spectrum_93" ;
         lv2:name "Spectrum 93" ;
         lv2:default -120 ;
@@ -1789,7 +1872,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 152 ;
+        lv2:index 159 ;
         lv2:symbol "spectrum_94" ;
         lv2:name "Spectrum 94" ;
         lv2:default -120 ;
@@ -1801,7 +1884,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 153 ;
+        lv2:index 160 ;
         lv2:symbol "spectrum_95" ;
         lv2:name "Spectrum 95" ;
         lv2:default -120 ;
@@ -1813,7 +1896,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 154 ;
+        lv2:index 161 ;
         lv2:symbol "spectrum_96" ;
         lv2:name "Spectrum 96" ;
         lv2:default -120 ;
@@ -1825,7 +1908,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 155 ;
+        lv2:index 162 ;
         lv2:symbol "spectrum_97" ;
         lv2:name "Spectrum 97" ;
         lv2:default -120 ;
@@ -1837,7 +1920,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 156 ;
+        lv2:index 163 ;
         lv2:symbol "spectrum_98" ;
         lv2:name "Spectrum 98" ;
         lv2:default -120 ;
@@ -1849,7 +1932,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 157 ;
+        lv2:index 164 ;
         lv2:symbol "spectrum_99" ;
         lv2:name "Spectrum 99" ;
         lv2:default -120 ;
@@ -1861,7 +1944,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 158 ;
+        lv2:index 165 ;
         lv2:symbol "spectrum_100" ;
         lv2:name "Spectrum 100" ;
         lv2:default -120 ;
@@ -1873,7 +1956,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 159 ;
+        lv2:index 166 ;
         lv2:symbol "spectrum_101" ;
         lv2:name "Spectrum 101" ;
         lv2:default -120 ;
@@ -1885,7 +1968,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 160 ;
+        lv2:index 167 ;
         lv2:symbol "spectrum_102" ;
         lv2:name "Spectrum 102" ;
         lv2:default -120 ;
@@ -1897,7 +1980,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 161 ;
+        lv2:index 168 ;
         lv2:symbol "spectrum_103" ;
         lv2:name "Spectrum 103" ;
         lv2:default -120 ;
@@ -1909,7 +1992,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 162 ;
+        lv2:index 169 ;
         lv2:symbol "spectrum_104" ;
         lv2:name "Spectrum 104" ;
         lv2:default -120 ;
@@ -1921,7 +2004,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 163 ;
+        lv2:index 170 ;
         lv2:symbol "spectrum_105" ;
         lv2:name "Spectrum 105" ;
         lv2:default -120 ;
@@ -1933,7 +2016,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 164 ;
+        lv2:index 171 ;
         lv2:symbol "spectrum_106" ;
         lv2:name "Spectrum 106" ;
         lv2:default -120 ;
@@ -1945,7 +2028,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 165 ;
+        lv2:index 172 ;
         lv2:symbol "spectrum_107" ;
         lv2:name "Spectrum 107" ;
         lv2:default -120 ;
@@ -1957,7 +2040,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 166 ;
+        lv2:index 173 ;
         lv2:symbol "spectrum_108" ;
         lv2:name "Spectrum 108" ;
         lv2:default -120 ;
@@ -1969,7 +2052,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 167 ;
+        lv2:index 174 ;
         lv2:symbol "spectrum_109" ;
         lv2:name "Spectrum 109" ;
         lv2:default -120 ;
@@ -1981,7 +2064,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 168 ;
+        lv2:index 175 ;
         lv2:symbol "spectrum_110" ;
         lv2:name "Spectrum 110" ;
         lv2:default -120 ;
@@ -1993,7 +2076,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 169 ;
+        lv2:index 176 ;
         lv2:symbol "spectrum_111" ;
         lv2:name "Spectrum 111" ;
         lv2:default -120 ;
@@ -2005,7 +2088,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 170 ;
+        lv2:index 177 ;
         lv2:symbol "spectrum_112" ;
         lv2:name "Spectrum 112" ;
         lv2:default -120 ;
@@ -2017,7 +2100,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 171 ;
+        lv2:index 178 ;
         lv2:symbol "spectrum_113" ;
         lv2:name "Spectrum 113" ;
         lv2:default -120 ;
@@ -2029,7 +2112,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 172 ;
+        lv2:index 179 ;
         lv2:symbol "spectrum_114" ;
         lv2:name "Spectrum 114" ;
         lv2:default -120 ;
@@ -2041,7 +2124,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 173 ;
+        lv2:index 180 ;
         lv2:symbol "spectrum_115" ;
         lv2:name "Spectrum 115" ;
         lv2:default -120 ;
@@ -2053,7 +2136,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 174 ;
+        lv2:index 181 ;
         lv2:symbol "spectrum_116" ;
         lv2:name "Spectrum 116" ;
         lv2:default -120 ;
@@ -2065,7 +2148,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 175 ;
+        lv2:index 182 ;
         lv2:symbol "spectrum_117" ;
         lv2:name "Spectrum 117" ;
         lv2:default -120 ;
@@ -2077,7 +2160,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 176 ;
+        lv2:index 183 ;
         lv2:symbol "spectrum_118" ;
         lv2:name "Spectrum 118" ;
         lv2:default -120 ;
@@ -2089,7 +2172,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 177 ;
+        lv2:index 184 ;
         lv2:symbol "spectrum_119" ;
         lv2:name "Spectrum 119" ;
         lv2:default -120 ;
@@ -2101,7 +2184,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 178 ;
+        lv2:index 185 ;
         lv2:symbol "spectrum_120" ;
         lv2:name "Spectrum 120" ;
         lv2:default -120 ;
@@ -2113,7 +2196,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 179 ;
+        lv2:index 186 ;
         lv2:symbol "spectrum_121" ;
         lv2:name "Spectrum 121" ;
         lv2:default -120 ;
@@ -2125,7 +2208,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 180 ;
+        lv2:index 187 ;
         lv2:symbol "spectrum_122" ;
         lv2:name "Spectrum 122" ;
         lv2:default -120 ;
@@ -2137,7 +2220,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 181 ;
+        lv2:index 188 ;
         lv2:symbol "spectrum_123" ;
         lv2:name "Spectrum 123" ;
         lv2:default -120 ;
@@ -2149,7 +2232,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 182 ;
+        lv2:index 189 ;
         lv2:symbol "spectrum_124" ;
         lv2:name "Spectrum 124" ;
         lv2:default -120 ;
@@ -2161,7 +2244,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 183 ;
+        lv2:index 190 ;
         lv2:symbol "spectrum_125" ;
         lv2:name "Spectrum 125" ;
         lv2:default -120 ;
@@ -2173,7 +2256,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 184 ;
+        lv2:index 191 ;
         lv2:symbol "spectrum_126" ;
         lv2:name "Spectrum 126" ;
         lv2:default -120 ;
@@ -2185,7 +2268,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 185 ;
+        lv2:index 192 ;
         lv2:symbol "spectrum_127" ;
         lv2:name "Spectrum 127" ;
         lv2:default -120 ;
@@ -2197,7 +2280,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 186 ;
+        lv2:index 193 ;
         lv2:symbol "sample_rate" ;
         lv2:name "Sample Rate" ;
         lv2:default 48000 ;
@@ -2208,7 +2291,7 @@
     ] ,
     [
         a lv2:OutputPort , lv2:ControlPort ;
-        lv2:index 187 ;
+        lv2:index 194 ;
         lv2:symbol "latency" ;
         lv2:name "Latency" ;
         lv2:default 0 ;

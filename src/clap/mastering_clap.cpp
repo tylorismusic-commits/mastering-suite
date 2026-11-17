@@ -588,6 +588,11 @@ void resetMeterAtomics(Shared& shared) {
   shared.correlation.store(0.0f);
   shared.compGr.store(0.0f);
   shared.limitGr.store(0.0f);
+  shared.truePeakMax.store(-120.0f);
+  shared.samplePeakMax.store(-120.0f);
+  shared.shortTermMax.store(-120.0f);
+  shared.plr.store(0.0f);
+  shared.psr.store(0.0f);
   for (int i = 0; i < kSpectrumBins; ++i) {
     shared.spectrum[i].store(-120.0f);
   }
@@ -651,6 +656,11 @@ clap_process_status pluginProcess(const clap_plugin_t* p,
     s->shared.correlation.store(s->meters.correlation);
     s->shared.compGr.store(s->meters.compGr);
     s->shared.limitGr.store(s->meters.limitGr);
+    s->shared.truePeakMax.store(s->meters.truePeakMax);
+    s->shared.samplePeakMax.store(s->meters.samplePeakMax);
+    s->shared.shortTermMax.store(s->meters.shortTermMax);
+    s->shared.plr.store(s->meters.plr);
+    s->shared.psr.store(s->meters.psr);
     const float* spectrum = s->engine.spectrumBins();
     for (int i = 0; i < kSpectrumBins; ++i) {
       s->shared.spectrum[i].store(spectrum[i]);

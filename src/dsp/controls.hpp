@@ -25,6 +25,7 @@ struct EqControls {
   float highGain = 0.5f;
   float highFreq = 0.65f;
   float hpf = 0.2f;
+  float tilt = 0.5f;  // -6..+6 dB, 0.5 is neutral
 };
 
 struct CompControls {
@@ -63,6 +64,7 @@ struct LimiterControls {
   float ceiling = 0.95f;
   float release = 0.5f;
   bool truePeak = true;
+  int oversample = 2;  // 0 off, 1 = 2x, 2 = 4x
 };
 
 struct Controls {
@@ -90,6 +92,11 @@ struct Meters {
   float correlation = 0.0f;
   float compGr = 0.0f;
   float limitGr = 0.0f;
+  float truePeakMax = -120.0f;
+  float samplePeakMax = -120.0f;
+  float shortTermMax = -120.0f;
+  float plr = 0.0f;
+  float psr = 0.0f;
   float spectrum[kSpectrumBins] = {};
 };
 

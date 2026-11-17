@@ -150,9 +150,9 @@ int main(int argc, char** argv) {
       plugin->get_extension(plugin, CLAP_EXT_LATENCY));
   check(params && params->count(plugin) == mastering::P_COUNT,
         "parameter count matches");
-  check(params && params->count(plugin) == 40, "forty parameters");
-  check(latency && latency->get(plugin) == 240,
-        "latency is 5 ms (240 samples)");
+  check(params && params->count(plugin) == 42, "forty-two parameters");
+  check(latency && latency->get(plugin) == 285,
+        "4x limiter latency is 285 samples");
   check(state && gui, "state and GUI extensions present");
 
   check(plugin->activate(plugin, 48000.0, kFrames, kFrames), "activate");
@@ -275,6 +275,12 @@ int main(int argc, char** argv) {
     params->value_to_text(plugin, mastering::P_LIMIT_CEILING, 0.95, buf,
                           sizeof(buf));
     check(std::strstr(buf, "dB") != nullptr, "ceiling reads as dB");
+    params->value_to_text(plugin, mastering::P_EQ_TILT, 0.75, buf,
+                          sizeof(buf));
+    check(std::strstr(buf, "+3.0 dB") != nullptr, "tilt reads as dB");
+    params->value_to_text(plugin, mastering::P_LIMIT_OS, 2.0, buf,
+                          sizeof(buf));
+    check(std::strcmp(buf, "4x") == 0, "oversampling reads as a mode");
   }
 
   // Editor.
@@ -379,16 +385,16 @@ int main(int argc, char** argv) {
         return v;
       };
       const double before = paramValue(mastering::P_EQ_LOW_GAIN);
-      drag(220, 455, -50);
+      drag(250, 440, -50);
       check(paramValue(mastering::P_EQ_LOW_GAIN) > before + 0.03,
             "dragging LOW GAIN moves it");
-      rightClick(220, 455);
+      rightClick(250, 440);
       key(XK_minus);
       key(XK_6);
       key(XK_Return);
       check(std::fabs(paramValue(mastering::P_EQ_LOW_GAIN) - 0.25) < 1e-4,
             "right-click typed value enters -6 dB");
-      doubleClick(220, 455);
+      doubleClick(250, 440);
       check(std::fabs(paramValue(mastering::P_EQ_LOW_GAIN) - 0.5) < 1e-4,
             "double-click resets to the parameter default");
 
@@ -396,7 +402,7 @@ int main(int argc, char** argv) {
       click(384, 32);
       click(384, 32);
       click(384, 32);
-      doubleClick(220, 455);
+      doubleClick(250, 440);
       check(std::fabs(paramValue(mastering::P_EQ_LOW_GAIN) - 0.52) < 1e-4,
             "double-click respects the selected preset");
 

@@ -52,6 +52,8 @@ enum ParamId : uint32_t {
   P_LIMIT_RELEASE,
   P_LIMIT_TRUE_PEAK,
   P_LIMIT_INPUT,
+  P_LIMIT_OS,
+  P_EQ_TILT,
   P_COUNT
 };
 
@@ -82,7 +84,9 @@ inline constexpr const char* kModelLabels[] = {"Valve", "Console", "Bus", "Tape"
                                                "Transformer"};
 inline constexpr const char* kClipLabels[] = {"Off", "Soft", "Hard"};
 inline constexpr const char* kRatioLabels[] = {"2:1", "4:1", "10:1"};
-inline constexpr const char* kMeterLabels[] = {"Spectrum", "Loudness", "GR"};
+inline constexpr const char* kOversampleLabels[] = {"Off", "2x", "4x"};
+inline constexpr const char* kMeterLabels[] = {"Spectrum", "Loudness", "GR",
+                                               "Peaks"};
 inline constexpr const char* kModuleLabels[] = {"EQ", "Comp", "Color", "Density",
                                                 "Limit"};
 
@@ -90,7 +94,7 @@ inline constexpr ParamSpec kParamSpecs[P_COUNT] = {
     {"power", "Power", "Global", 0.0, 1.0, 1.0, true, false, true, {}},
     {"input", "Input", "Global", 0.0, 1.0, 0.5, false, false, false, {}},
     {"output", "Output", "Global", 0.0, 1.0, 0.5, false, false, false, {}},
-    {"meter", "Meter", "Global", 0.0, 2.0, 0.0, true, true, false,
+    {"meter", "Meter", "Global", 0.0, 3.0, 0.0, true, true, false,
      labels(kMeterLabels)},
     {"module", "Module", "Global", 0.0, 4.0, 0.0, true, true, false,
      labels(kModuleLabels)},
@@ -152,6 +156,9 @@ inline constexpr ParamSpec kParamSpecs[P_COUNT] = {
      true, {}},
     {"limiter_input", "Input Gain", "Limiter", 0.0, 1.0, 0.5, false, false,
      false, {}},
+    {"limiter_os", "Oversampling", "Limiter", 0.0, 2.0, 2.0, true, false,
+     false, labels(kOversampleLabels)},
+    {"eq_tilt", "Tilt", "EQ", 0.0, 1.0, 0.5, false, false, false, {}},
 };
 
 static_assert(sizeof(kParamSpecs) / sizeof(kParamSpecs[0]) == P_COUNT,
@@ -181,6 +188,9 @@ inline float midQ(float v) noexcept { return 0.3f + 1.2f * clamp01(v); }
 inline float hpfHz(float v) noexcept {
   return 20.0f * std::pow(6.0f, clamp01(v));
 }
+inline float eqTiltDb(float v) noexcept {
+  return -6.0f + 12.0f * clamp01(v);
+}
 inline float compThresholdDb(float v) noexcept {
   return -40.0f + 40.0f * clamp01(v);
 }
@@ -209,7 +219,7 @@ inline float limiterCeilingDb(float v) noexcept {
   return -6.0f + 6.0f * clamp01(v);
 }
 inline float limiterReleaseMs(float v) noexcept {
-  return 20.0f * std::pow(25.0f, clamp01(v));
+  return 20.0f * std::pow(50.0f, clamp01(v));
 }
 inline float colorLevelGain(float v) noexcept {
   v = clamp01(v);
@@ -240,6 +250,11 @@ public:
     correlation.store(0.0f);
     compGr.store(0.0f);
     limitGr.store(0.0f);
+    truePeakMax.store(-120.0f);
+    samplePeakMax.store(-120.0f);
+    shortTermMax.store(-120.0f);
+    plr.store(0.0f);
+    psr.store(0.0f);
     for (int i = 0; i < kSpectrumBins; ++i) {
       spectrum[i].store(-120.0f);
     }
@@ -313,6 +328,11 @@ public:
   std::atomic<float> correlation;
   std::atomic<float> compGr;
   std::atomic<float> limitGr;
+  std::atomic<float> truePeakMax;
+  std::atomic<float> samplePeakMax;
+  std::atomic<float> shortTermMax;
+  std::atomic<float> plr;
+  std::atomic<float> psr;
   std::atomic<float> spectrum[kSpectrumBins];
 
 private:
@@ -335,6 +355,7 @@ inline Controls controlsFrom(const Shared& s) noexcept {
   c.eq.highGain = static_cast<float>(s.get(P_EQ_HIGH_GAIN));
   c.eq.highFreq = static_cast<float>(s.get(P_EQ_HIGH_FREQ));
   c.eq.hpf = static_cast<float>(s.get(P_EQ_HPF));
+  c.eq.tilt = static_cast<float>(s.get(P_EQ_TILT));
 
   c.comp.enabled = s.get(P_COMP_ON) > 0.5;
   c.comp.threshold = static_cast<float>(s.get(P_COMP_THRESHOLD));
@@ -365,6 +386,7 @@ inline Controls controlsFrom(const Shared& s) noexcept {
   c.limiter.ceiling = static_cast<float>(s.get(P_LIMIT_CEILING));
   c.limiter.release = static_cast<float>(s.get(P_LIMIT_RELEASE));
   c.limiter.truePeak = s.get(P_LIMIT_TRUE_PEAK) > 0.5;
+  c.limiter.oversample = static_cast<int>(s.get(P_LIMIT_OS) + 0.5);
   return c;
 }
 

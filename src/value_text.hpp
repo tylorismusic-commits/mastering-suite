@@ -62,6 +62,10 @@ inline std::string formatParamValue(uint32_t id, double value) {
       std::snprintf(buf, sizeof(buf), "%+.1f dB",
                     limiterInputDb(static_cast<float>(value)));
       return buf;
+    case P_EQ_TILT:
+      std::snprintf(buf, sizeof(buf), "%+.1f dB",
+                    eqTiltDb(static_cast<float>(value)));
+      return buf;
     case P_EQ_LOW_FREQ:
       std::snprintf(buf, sizeof(buf), "%.0f Hz",
                     lowFreqHz(static_cast<float>(value)));
@@ -175,6 +179,7 @@ inline bool parseParamValue(uint32_t id, const std::string& raw, double* out) {
     case P_METER:
     case P_MODULE:
     case P_COLOR_CLIP:
+    case P_LIMIT_OS:
       *out = value;
       return true;
     case P_COMP_RATIO: {
@@ -200,6 +205,9 @@ inline bool parseParamValue(uint32_t id, const std::string& raw, double* out) {
     case P_DENS_OUTPUT:
     case P_LIMIT_INPUT:
       *out = (value + 12.0) / 24.0;
+      return true;
+    case P_EQ_TILT:
+      *out = (value + 6.0) / 12.0;
       return true;
     case P_EQ_LOW_FREQ:
       *out = std::log(std::clamp(hz(), 40.0, 300.0) / 40.0) /
@@ -261,8 +269,8 @@ inline bool parseParamValue(uint32_t id, const std::string& raw, double* out) {
       *out = (value + 6.0) / 6.0;
       return true;
     case P_LIMIT_RELEASE:
-      *out = std::log(std::clamp(ms(), 20.0, 500.0) / 20.0) /
-             std::log(25.0);
+      *out = std::log(std::clamp(ms(), 20.0, 1000.0) / 20.0) /
+             std::log(50.0);
       return true;
     default:
       *out = value;

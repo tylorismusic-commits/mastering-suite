@@ -146,6 +146,11 @@ void run(LV2_Handle handle, uint32_t frames) {
   writeMeter(mastering::kLv2Correlation, p->meters.correlation);
   writeMeter(mastering::kLv2CompGr, p->meters.compGr);
   writeMeter(mastering::kLv2LimitGr, p->meters.limitGr);
+  writeMeter(mastering::kLv2TruePeakMax, p->meters.truePeakMax);
+  writeMeter(mastering::kLv2SamplePeakMax, p->meters.samplePeakMax);
+  writeMeter(mastering::kLv2ShortTermMax, p->meters.shortTermMax);
+  writeMeter(mastering::kLv2Plr, p->meters.plr);
+  writeMeter(mastering::kLv2Psr, p->meters.psr);
 
   const float* spectrum = p->engine.spectrumBins();
   for (uint32_t i = 0; i < mastering::kLv2SpectrumCount; ++i) {

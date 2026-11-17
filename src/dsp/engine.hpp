@@ -87,6 +87,9 @@ public:
     spectrum_.reset();
     corrState_ = 0.0f;
     meterCounter_ = 0;
+    truePeakMax_ = -120.0f;
+    samplePeakMax_ = -120.0f;
+    shortTermMax_ = -120.0f;
   }
 
   void reset() noexcept {
@@ -102,6 +105,9 @@ public:
     outputSmooth_.snap();
     corrState_ = 0.0f;
     meterCounter_ = 0;
+    truePeakMax_ = -120.0f;
+    samplePeakMax_ = -120.0f;
+    shortTermMax_ = -120.0f;
   }
 
   void process(float* left, float* right, int frames, Meters& meters) noexcept {
@@ -126,6 +132,8 @@ public:
     double sumL2 = 0.0;
     double sumR2 = 0.0;
 
+    // EQ, compressor, colour and density are per-sample; the limiter is a
+    // block stage so it can run at its oversampled rate.
     for (int i = 0; i < frames; ++i) {
       const float rawL = std::isfinite(left[i]) ? left[i] : 0.0f;
       const float rawR = std::isfinite(right[i]) ? right[i] : 0.0f;
@@ -136,25 +144,30 @@ public:
 
       float l = dryL;
       float r = dryR;
-      float gr = 0.0f;
       if (controls_.enabled) {
         const float in = inputSmooth_.next();
         l *= in;
         r *= in;
         eq_.process(l, r);
-        gr = comp_.process(l, r);
-        compGr = std::max(compGr, gr);
+        compGr = std::max(compGr, comp_.process(l, r));
         color_.process(l, r);
         density_.process(l, r);
       }
-      limiter_.process(l, r);
-      limitGr = std::max(limitGr, limiter_.gainReductionDb());
+      left[i] = l;
+      right[i] = r;
+    }
+
+    limiter_.process(left, right, frames);
+    limitGr = limiter_.gainReductionDb();
+
+    for (int i = 0; i < frames; ++i) {
+      float l = left[i];
+      float r = right[i];
       if (controls_.enabled) {
         const float out = outputSmooth_.next();
         l *= out;
         r *= out;
       }
-
       const float yL = std::isfinite(l) ? l : 0.0f;
       const float yR = std::isfinite(r) ? r : 0.0f;
       left[i] = yL;
@@ -225,6 +238,23 @@ public:
         meters.lra = static_cast<float>(std::max(lra, 0.0));
       }
     }
+
+    truePeakMax_ =
+        std::max(truePeakMax_, std::max(meters.truePeakL, meters.truePeakR));
+    samplePeakMax_ =
+        std::max(samplePeakMax_, std::max(meters.outPeakL, meters.outPeakR));
+    if (meters.lufsShortTerm > -100.0f) {
+      shortTermMax_ = std::max(shortTermMax_, meters.lufsShortTerm);
+    }
+    meters.truePeakMax = truePeakMax_;
+    meters.samplePeakMax = samplePeakMax_;
+    meters.shortTermMax = shortTermMax_;
+    meters.plr = (meters.lufsIntegrated > -100.0f && truePeakMax_ > -100.0f)
+                     ? std::max(truePeakMax_ - meters.lufsIntegrated, 0.0f)
+                     : 0.0f;
+    meters.psr = (shortTermMax_ > -100.0f && truePeakMax_ > -100.0f)
+                     ? std::max(truePeakMax_ - shortTermMax_, 0.0f)
+                     : 0.0f;
   }
 
 private:
@@ -243,6 +273,9 @@ private:
   ebur128_state* loudness_ = nullptr;
   std::vector<float> interleave_;
   float corrState_ = 0.0f;
+  float truePeakMax_ = -120.0f;
+  float samplePeakMax_ = -120.0f;
+  float shortTermMax_ = -120.0f;
   int meterCounter_ = 0;
 };
 

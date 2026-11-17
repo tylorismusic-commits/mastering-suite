@@ -415,6 +415,21 @@ void uiPortEvent(LV2UI_Handle handle, uint32_t port, uint32_t size,
       case mastering::kLv2LimitGr:
         ui->shared.limitGr.store(v);
         break;
+      case mastering::kLv2TruePeakMax:
+        ui->shared.truePeakMax.store(v);
+        break;
+      case mastering::kLv2SamplePeakMax:
+        ui->shared.samplePeakMax.store(v);
+        break;
+      case mastering::kLv2ShortTermMax:
+        ui->shared.shortTermMax.store(v);
+        break;
+      case mastering::kLv2Plr:
+        ui->shared.plr.store(v);
+        break;
+      case mastering::kLv2Psr:
+        ui->shared.psr.store(v);
+        break;
       default:
         break;
     }

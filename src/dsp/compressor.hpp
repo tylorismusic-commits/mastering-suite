@@ -68,15 +68,16 @@ public:
     // them again here would double every time constant.
     grDb_ = std::max(target, 0.0f);
 
-    const float targetAuto = controls_.autoGain ? grDb_ : 0.0f;
+    const float targetAuto = controls_.autoGain ? grDb_ * mix_ : 0.0f;
     autoDb_ += (targetAuto - autoDb_) * (1.0f - autoCoeff_);
+    autoDb_ = std::min(std::max(autoDb_, 0.0f), 24.0f);
     const float makeup = hdsp::dbToGain(autoDb_);
-    const float gain = hdsp::dbToGain(-grDb_) * makeup;
+    const float gain = hdsp::dbToGain(-grDb_);
 
     const float wetL = dryL * gain;
     const float wetR = dryR * gain;
-    left = dryL + mix_ * (wetL - dryL);
-    right = dryR + mix_ * (wetR - dryR);
+    left = (dryL + mix_ * (wetL - dryL)) * makeup;
+    right = (dryR + mix_ * (wetR - dryR)) * makeup;
     return grDb_;
   }
 
