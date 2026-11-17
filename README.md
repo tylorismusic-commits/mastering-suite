@@ -1,5 +1,9 @@
 # Mastering Suite
 
+**Status: live alpha — 0.5.0.** This is a testing build, not a final release.
+Please report crashes, host compatibility issues and anything that sounds or
+meters wrong. Linux x86_64, CLAP and LV2.
+
 A fixed-order stereo mastering chain with calibrated metering, built on
 `hearth-dsp` and the Comp Suite/Patina visual language. Ships as CLAP and LV2
 with a self-contained loudness analyser.
