@@ -28,6 +28,7 @@
 #include "value_text.hpp"
 #include "ui/geometry.hpp"
 #include "ui/panel.hpp"
+#include "ui/xdnd.hpp"
 #include "version.hpp"
 
 namespace mastering {
@@ -113,6 +114,9 @@ private:
         XCreateWindow(dpy, parent, 0, 0, current.width, current.height, 0,
                       CopyFromParent, InputOutput, CopyFromParent, CWEventMask,
                       &attrs);
+    xdnd_.init(dpy, win, [this](const std::string& path) {
+      panel_.importDroppedFile(shared_, state_, path);
+    });
     const UiSize minSize = sizeForScale(kMinUiScale);
     const UiSize maxSize = sizeForScale(kMaxUiScale);
     XSizeHints hints{};
@@ -212,6 +216,9 @@ private:
   }
 
   void handleEvent(const XEvent& ev) {
+    if (xdnd_.handle(ev)) {
+      return;
+    }
     const double s = scale();
     switch (ev.type) {
       case ButtonPress: {
@@ -265,6 +272,7 @@ private:
   Shared& shared_;
   PanelState state_;
   Panel panel_;
+  XdndDropTarget xdnd_;
   std::atomic<double> scale_{1.0};
   std::atomic<bool> resetUi_{false};
   std::mutex mutex_;

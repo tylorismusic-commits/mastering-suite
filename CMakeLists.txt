@@ -254,6 +254,14 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 add_test(NAME mastering_dsp COMMAND mastering_dsp_test)
 
+add_executable(mastering_preset_test test/test_presets.cpp)
+target_link_libraries(mastering_preset_test PRIVATE mastering_ui)
+target_compile_features(mastering_preset_test PRIVATE cxx_std_17)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(mastering_preset_test PRIVATE -Wall -Wextra)
+endif()
+add_test(NAME mastering_presets COMMAND mastering_preset_test)
+
 if(LILV_FOUND)
   add_executable(mastering_lv2_host_test test/lv2_host_test.cpp)
   target_include_directories(mastering_lv2_host_test PRIVATE

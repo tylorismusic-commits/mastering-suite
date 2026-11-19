@@ -103,6 +103,8 @@ This creates `build/dist/MasteringSuite-0.5.0-linux-x86_64.tar.gz` with:
 ## Notes
 
 - Formats: CLAP and LV2/X11, built from one DSP and panel source.
+- Factory and user presets: save, rename, duplicate, delete, export and
+  drag-drop import.
 - Limiter oversampling is limiter-only; the EQ, compressor and colour stages
   remain at the host rate.
 - No Sonnox Inflator, FabFilter Pro-L 2 or Tokyo Dawn SlickEQ code, curves or

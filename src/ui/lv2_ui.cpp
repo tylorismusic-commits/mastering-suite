@@ -29,6 +29,7 @@
 #include "params.hpp"
 #include "ui/geometry.hpp"
 #include "ui/panel.hpp"
+#include "ui/xdnd.hpp"
 
 namespace {
 
@@ -44,6 +45,7 @@ struct Ui {
   mastering::Shared shared;
   mastering::Panel panel;
   mastering::PanelState state;
+  mastering::XdndDropTarget xdnd;
 
   Display* dpy = nullptr;
   Window win = 0;
@@ -107,6 +109,10 @@ struct Ui {
   }
 
   void handleEvent(const XEvent& ev) {
+    if (xdnd.handle(ev)) {
+      dirty = true;
+      return;
+    }
     const double s = layoutScale();
     const double ox = offsetX();
     const double oy = offsetY();
@@ -296,6 +302,11 @@ LV2UI_Handle uiInstantiate(const LV2UI_Descriptor*, const char* /*pluginUri*/,
   ui->win = XCreateWindow(ui->dpy, parentWindow, 0, 0, ui->width, ui->height,
                           0, CopyFromParent, InputOutput, CopyFromParent,
                           CWBackPixel | CWEventMask, &attrs);
+  ui->xdnd.init(ui->dpy, ui->win, [ui](const std::string& path) {
+    if (ui->panel.importDroppedFile(ui->shared, ui->state, path)) {
+      ui->dirty = true;
+    }
+  });
   XStoreName(ui->dpy, ui->win, "Mastering Suite");
   XMapRaised(ui->dpy, ui->win);
 

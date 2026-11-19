@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "params.hpp"
+#include "user_presets.hpp"
 
 namespace mastering {
 
@@ -26,6 +27,16 @@ struct PanelState {
   bool presetDirty = false;
   int presetOpen = 0;
   int presetScroll = 0;
+  bool savePreset = false;
+  bool renamePreset = false;
+  bool deletePresetConfirm = false;
+  bool presetOverwriteConfirm = false;
+  std::string presetText;
+  bool presetTextFresh = false;
+  std::string presetError;
+  std::string presetNotice;
+  double presetNoticeUntil = 0.0;
+  std::vector<UserPreset> userPresets;
   float inLevelL = -120.0f;
   float inLevelR = -120.0f;
   float outLevelL = -120.0f;
@@ -73,6 +84,20 @@ public:
                      const PanelState& state) const;
   void drawPresetList(cairo_t* cr, const Shared& shared,
                       const PanelState& state) const;
+  int presetCount(const PanelState& state) const;
+  const char* presetName(const PanelState& state, int index) const;
+  const char* presetCategory(const PanelState& state, int index) const;
+  std::vector<int> presetOrder(const PanelState& state) const;
+  void reloadUserPresets(PanelState& state);
+  void rescanUserPresets(PanelState& state);
+  void setPresetNotice(PanelState& state, const std::string& text) const;
+  void duplicatePreset(Shared& shared, PanelState& state);
+  void exportPreset(const Shared& shared, PanelState& state) const;
+  bool importPresetFile(Shared& shared, PanelState& state,
+                        const std::string& path);
+  bool importDroppedFile(Shared& shared, PanelState& state,
+                         const std::string& path);
+  bool commitPresetName(Shared& shared, PanelState& state);
 
 private:
   enum class Kind {
