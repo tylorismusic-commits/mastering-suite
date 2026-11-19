@@ -6,5 +6,5 @@ namespace mastering {
 constexpr int kVersionMajor = 0;
 constexpr int kVersionMinor = 5;
 constexpr int kVersionMicro = 0;
-constexpr const char* kVersion = "0.5.0";
+constexpr const char* kVersion = "0.5.1";
 } // namespace mastering

@@ -1,6 +1,6 @@
 # Mastering Suite
 
-**Status: live alpha — 0.5.0.** This is a testing build, not a final release.
+**Status: live alpha — 0.5.1.** This is a testing build, not a final release.
 Please report crashes, host compatibility issues and anything that sounds or
 meters wrong. Linux x86_64, CLAP and LV2.
 
