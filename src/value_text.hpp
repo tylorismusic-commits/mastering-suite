@@ -47,6 +47,7 @@ inline std::string formatParamValue(uint32_t id, double value) {
     case P_LIMIT_ON:
     case P_COMP_AUTO:
     case P_LIMIT_TRUE_PEAK:
+    case P_DELTA:
       return value > 0.5 ? "On" : "Off";
     case P_INPUT:
     case P_OUTPUT:
@@ -132,6 +133,10 @@ inline std::string formatParamValue(uint32_t id, double value) {
       std::snprintf(buf, sizeof(buf), "%.0f ms",
                     limiterReleaseMs(static_cast<float>(value)));
       return buf;
+    case P_WIDTH:
+      std::snprintf(buf, sizeof(buf), "%.0f%%",
+                    widthAmount(static_cast<float>(value)) * 100.0f);
+      return buf;
     default:
       std::snprintf(buf, sizeof(buf), "%.2f", value);
       return buf;
@@ -182,6 +187,26 @@ inline bool parseParamValue(uint32_t id, const std::string& raw, double* out) {
     case P_LIMIT_OS:
       *out = value;
       return true;
+    case P_WIDTH: {
+      const double pct =
+          (suffix == "%" || value > 2.0) ? value : value * 100.0;
+      *out = std::clamp(pct / 200.0, 0.0, 1.0);
+      return true;
+    }
+    case P_TARGET: {
+      static constexpr double kLufs[4] = {-9.0, -14.0, -16.0, -23.0};
+      int best = 0;
+      double delta = 1.0e9;
+      for (int i = 0; i < 4; ++i) {
+        const double d = std::fabs(kLufs[i] - value);
+        if (d < delta) {
+          delta = d;
+          best = i;
+        }
+      }
+      *out = best;
+      return true;
+    }
     case P_COMP_RATIO: {
       static constexpr double kRatios[3] = {2.0, 4.0, 10.0};
       int best = 0;

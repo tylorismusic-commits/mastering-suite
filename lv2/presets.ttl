@@ -67,7 +67,13 @@
     [ lv2:symbol "limiter_true_peak" ; pset:value 1 ] ,
     [ lv2:symbol "limiter_input" ; pset:value 0.5 ] ,
     [ lv2:symbol "limiter_os" ; pset:value 2 ] ,
-    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] .
+    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] ,
+    [ lv2:symbol "width" ; pset:value 0.5 ] ,
+    [ lv2:symbol "ms_mode" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_bits" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_shape" ; pset:value 0 ] ,
+    [ lv2:symbol "delta" ; pset:value 0 ] ,
+    [ lv2:symbol "target" ; pset:value 1 ] .
 
 <https://github.com/tylorismusic-commits/mastering-suite#preset_gentle-glue>
     a pset:Preset ;
@@ -117,7 +123,13 @@
     [ lv2:symbol "limiter_true_peak" ; pset:value 1 ] ,
     [ lv2:symbol "limiter_input" ; pset:value 0.5 ] ,
     [ lv2:symbol "limiter_os" ; pset:value 2 ] ,
-    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] .
+    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] ,
+    [ lv2:symbol "width" ; pset:value 0.5 ] ,
+    [ lv2:symbol "ms_mode" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_bits" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_shape" ; pset:value 0 ] ,
+    [ lv2:symbol "delta" ; pset:value 0 ] ,
+    [ lv2:symbol "target" ; pset:value 1 ] .
 
 <https://github.com/tylorismusic-commits/mastering-suite#preset_streaming-ready>
     a pset:Preset ;
@@ -167,7 +179,13 @@
     [ lv2:symbol "limiter_true_peak" ; pset:value 1 ] ,
     [ lv2:symbol "limiter_input" ; pset:value 0.5 ] ,
     [ lv2:symbol "limiter_os" ; pset:value 2 ] ,
-    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] .
+    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] ,
+    [ lv2:symbol "width" ; pset:value 0.5 ] ,
+    [ lv2:symbol "ms_mode" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_bits" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_shape" ; pset:value 0 ] ,
+    [ lv2:symbol "delta" ; pset:value 0 ] ,
+    [ lv2:symbol "target" ; pset:value 1 ] .
 
 <https://github.com/tylorismusic-commits/mastering-suite#preset_cd-loud>
     a pset:Preset ;
@@ -217,7 +235,13 @@
     [ lv2:symbol "limiter_true_peak" ; pset:value 1 ] ,
     [ lv2:symbol "limiter_input" ; pset:value 0.5 ] ,
     [ lv2:symbol "limiter_os" ; pset:value 2 ] ,
-    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] .
+    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] ,
+    [ lv2:symbol "width" ; pset:value 0.5 ] ,
+    [ lv2:symbol "ms_mode" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_bits" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_shape" ; pset:value 0 ] ,
+    [ lv2:symbol "delta" ; pset:value 0 ] ,
+    [ lv2:symbol "target" ; pset:value 1 ] .
 
 <https://github.com/tylorismusic-commits/mastering-suite#preset_tape-master>
     a pset:Preset ;
@@ -267,7 +291,13 @@
     [ lv2:symbol "limiter_true_peak" ; pset:value 1 ] ,
     [ lv2:symbol "limiter_input" ; pset:value 0.5 ] ,
     [ lv2:symbol "limiter_os" ; pset:value 2 ] ,
-    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] .
+    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] ,
+    [ lv2:symbol "width" ; pset:value 0.5 ] ,
+    [ lv2:symbol "ms_mode" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_bits" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_shape" ; pset:value 0 ] ,
+    [ lv2:symbol "delta" ; pset:value 0 ] ,
+    [ lv2:symbol "target" ; pset:value 1 ] .
 
 <https://github.com/tylorismusic-commits/mastering-suite#preset_iron-weight>
     a pset:Preset ;
@@ -317,7 +347,13 @@
     [ lv2:symbol "limiter_true_peak" ; pset:value 1 ] ,
     [ lv2:symbol "limiter_input" ; pset:value 0.5 ] ,
     [ lv2:symbol "limiter_os" ; pset:value 2 ] ,
-    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] .
+    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] ,
+    [ lv2:symbol "width" ; pset:value 0.5 ] ,
+    [ lv2:symbol "ms_mode" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_bits" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_shape" ; pset:value 0 ] ,
+    [ lv2:symbol "delta" ; pset:value 0 ] ,
+    [ lv2:symbol "target" ; pset:value 1 ] .
 
 <https://github.com/tylorismusic-commits/mastering-suite#preset_air-glue>
     a pset:Preset ;
@@ -367,7 +403,13 @@
     [ lv2:symbol "limiter_true_peak" ; pset:value 1 ] ,
     [ lv2:symbol "limiter_input" ; pset:value 0.5 ] ,
     [ lv2:symbol "limiter_os" ; pset:value 2 ] ,
-    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] .
+    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] ,
+    [ lv2:symbol "width" ; pset:value 0.5 ] ,
+    [ lv2:symbol "ms_mode" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_bits" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_shape" ; pset:value 0 ] ,
+    [ lv2:symbol "delta" ; pset:value 0 ] ,
+    [ lv2:symbol "target" ; pset:value 1 ] .
 
 <https://github.com/tylorismusic-commits/mastering-suite#preset_density-push>
     a pset:Preset ;
@@ -417,7 +459,13 @@
     [ lv2:symbol "limiter_true_peak" ; pset:value 1 ] ,
     [ lv2:symbol "limiter_input" ; pset:value 0.5 ] ,
     [ lv2:symbol "limiter_os" ; pset:value 2 ] ,
-    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] .
+    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] ,
+    [ lv2:symbol "width" ; pset:value 0.5 ] ,
+    [ lv2:symbol "ms_mode" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_bits" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_shape" ; pset:value 0 ] ,
+    [ lv2:symbol "delta" ; pset:value 0 ] ,
+    [ lv2:symbol "target" ; pset:value 1 ] .
 
 <https://github.com/tylorismusic-commits/mastering-suite#preset_transparent-limit>
     a pset:Preset ;
@@ -467,7 +515,13 @@
     [ lv2:symbol "limiter_true_peak" ; pset:value 1 ] ,
     [ lv2:symbol "limiter_input" ; pset:value 0.5 ] ,
     [ lv2:symbol "limiter_os" ; pset:value 2 ] ,
-    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] .
+    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] ,
+    [ lv2:symbol "width" ; pset:value 0.5 ] ,
+    [ lv2:symbol "ms_mode" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_bits" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_shape" ; pset:value 0 ] ,
+    [ lv2:symbol "delta" ; pset:value 0 ] ,
+    [ lv2:symbol "target" ; pset:value 1 ] .
 
 <https://github.com/tylorismusic-commits/mastering-suite#preset_club-master>
     a pset:Preset ;
@@ -517,7 +571,13 @@
     [ lv2:symbol "limiter_true_peak" ; pset:value 1 ] ,
     [ lv2:symbol "limiter_input" ; pset:value 0.5 ] ,
     [ lv2:symbol "limiter_os" ; pset:value 2 ] ,
-    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] .
+    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] ,
+    [ lv2:symbol "width" ; pset:value 0.5 ] ,
+    [ lv2:symbol "ms_mode" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_bits" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_shape" ; pset:value 0 ] ,
+    [ lv2:symbol "delta" ; pset:value 0 ] ,
+    [ lv2:symbol "target" ; pset:value 1 ] .
 
 <https://github.com/tylorismusic-commits/mastering-suite#preset_low-warmth>
     a pset:Preset ;
@@ -567,5 +627,11 @@
     [ lv2:symbol "limiter_true_peak" ; pset:value 1 ] ,
     [ lv2:symbol "limiter_input" ; pset:value 0.5 ] ,
     [ lv2:symbol "limiter_os" ; pset:value 2 ] ,
-    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] .
+    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] ,
+    [ lv2:symbol "width" ; pset:value 0.5 ] ,
+    [ lv2:symbol "ms_mode" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_bits" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_shape" ; pset:value 0 ] ,
+    [ lv2:symbol "delta" ; pset:value 0 ] ,
+    [ lv2:symbol "target" ; pset:value 1 ] .
 

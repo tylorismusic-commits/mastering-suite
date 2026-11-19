@@ -20,6 +20,7 @@ struct PanelState {
   PanelState() {
     for (int i = 0; i < kSpectrumBins; ++i) {
       spectrum[i] = -120.0f;
+      refSpectrum[i] = -120.0f;
     }
   }
 
@@ -54,7 +55,11 @@ struct PanelState {
   float shortTermMax = -120.0f;
   float plr = 0.0f;
   float psr = 0.0f;
+  float targetLufs = -14.0f;
+  float targetDelta = 0.0f;
   float spectrum[kSpectrumBins] = {};
+  float refSpectrum[kSpectrumBins] = {};
+  bool refActive = false;
 };
 
 class Panel {
@@ -109,7 +114,9 @@ private:
     Pill,
     Option,
     Cycle,
-    MeterReset
+    MeterReset,
+    RefCapture,
+    RefClear
   };
 
   struct Widget {

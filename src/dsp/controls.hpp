@@ -71,6 +71,12 @@ struct Controls {
   bool enabled = true;
   float input = 0.5f;
   float output = 0.5f;
+  float width = 1.0f;
+  int msMode = 0;
+  int ditherBits = 0;
+  int ditherShape = 0;
+  bool delta = false;
+  int targetIndex = 1;
   EqControls eq;
   CompControls comp;
   ColorControls color;
@@ -89,6 +95,8 @@ struct Meters {
   float lufsShortTerm = -120.0f;
   float lufsMomentary = -120.0f;
   float lra = 0.0f;
+  float targetLufs = -14.0f;
+  float targetDelta = 0.0f;
   float correlation = 0.0f;
   float compGr = 0.0f;
   float limitGr = 0.0f;

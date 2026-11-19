@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
       plugin->get_extension(plugin, CLAP_EXT_LATENCY));
   check(params && params->count(plugin) == mastering::P_COUNT,
         "parameter count matches");
-  check(params && params->count(plugin) == 42, "forty-two parameters");
+  check(params && params->count(plugin) == 48, "forty-eight parameters");
   check(latency && latency->get(plugin) == 285,
         "4x limiter latency is 285 samples");
   check(state && gui, "state and GUI extensions present");
@@ -325,6 +325,14 @@ int main(int argc, char** argv) {
       uint32_t w = 0, h = 0;
       check(gui->get_size(plugin, &w, &h) && w == 1040 && h == 640,
             "gui size is 1040x640");
+      if (editor) {
+        // A window manager may reparent the editor when it is mapped, so
+        // resolve its root position after show rather than before.
+        Window rr;
+        XTranslateCoordinates(dpy, editor,
+                              RootWindow(dpy, DefaultScreen(dpy)), 0, 0,
+                              &originX, &originY, &rr);
+      }
       if (editor) {
         XImage* img = XGetImage(dpy, editor, 0, 0, 1040, 640, AllPlanes,
                                 ZPixmap);

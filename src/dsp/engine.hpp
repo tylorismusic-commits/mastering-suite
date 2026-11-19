@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <vector>
 
 #include <ebur128.h>
@@ -49,6 +50,7 @@ public:
     inputSmooth_.setTime(15.0f, baseRate_);
     outputSmooth_.setTime(15.0f, baseRate_);
     interleave_.assign(2 * 4096, 0.0f);
+    clearOutputState();
     reset();
     setControls(controls_);
     inputSmooth_.snap();
@@ -93,6 +95,7 @@ public:
   }
 
   void reset() noexcept {
+    clearOutputState();
     eq_.reset();
     comp_.reset();
     color_.reset();
@@ -119,6 +122,9 @@ public:
       lim.enabled = false;
     }
     limiter_.setControls(lim);
+
+    const int dryStart = dryWrite_;
+    const int latency = std::min(limiter_.latencySamples(), kMaxDelay - 1);
 
     float inPeakL = 0.0f;
     float inPeakR = 0.0f;
@@ -148,6 +154,11 @@ public:
         const float in = inputSmooth_.next();
         l *= in;
         r *= in;
+      }
+      dryL_[dryWrite_] = l;
+      dryR_[dryWrite_] = r;
+      dryWrite_ = (dryWrite_ + 1) % kMaxDelay;
+      if (controls_.enabled) {
         eq_.process(l, r);
         compGr = std::max(compGr, comp_.process(l, r));
         color_.process(l, r);
@@ -163,11 +174,43 @@ public:
     for (int i = 0; i < frames; ++i) {
       float l = left[i];
       float r = right[i];
+      float out = 1.0f;
       if (controls_.enabled) {
-        const float out = outputSmooth_.next();
+        out = outputSmooth_.next();
         l *= out;
         r *= out;
       }
+
+      // Width and monitoring matrix at the very end of the chain.
+      const float mid = 0.5f * (l + r);
+      const float side = 0.5f * (l - r) * controls_.width;
+      switch (controls_.msMode) {
+        case 1:  // M/S encode: mid on the left, side on the right
+          l = mid;
+          r = side;
+          break;
+        case 2:  // mid solo
+          l = r = mid;
+          break;
+        case 3:  // side solo
+          l = r = side;
+          break;
+        default:
+          l = mid + side;
+          r = mid - side;
+          break;
+      }
+
+      if (controls_.delta) {
+        const int dryIndex =
+            ((dryStart + i - latency) % kMaxDelay + kMaxDelay) % kMaxDelay;
+        l -= dryL_[dryIndex] * out;
+        r -= dryR_[dryIndex] * out;
+      }
+
+      l = ditherSample(l, 0);
+      r = ditherSample(r, 1);
+
       const float yL = std::isfinite(l) ? l : 0.0f;
       const float yR = std::isfinite(r) ? r : 0.0f;
       left[i] = yL;
@@ -255,9 +298,52 @@ public:
     meters.psr = (shortTermMax_ > -100.0f && truePeakMax_ > -100.0f)
                      ? std::max(truePeakMax_ - shortTermMax_, 0.0f)
                      : 0.0f;
+    meters.targetLufs = loudnessTargetFor(controls_.targetIndex);
+    meters.targetDelta =
+        meters.lufsIntegrated > -100.0f
+            ? meters.lufsIntegrated - meters.targetLufs
+            : 0.0f;
   }
 
 private:
+  static constexpr int kMaxDelay = 8192;
+
+  void clearOutputState() noexcept {
+    for (int i = 0; i < kMaxDelay; ++i) {
+      dryL_[i] = 0.0f;
+      dryR_[i] = 0.0f;
+    }
+    dryWrite_ = 0;
+    rngState_ = 0x9e3779b9u;
+    shapeErr_[0] = shapeErr_[1] = 0.0f;
+  }
+
+  float rng01() noexcept {
+    rngState_ ^= rngState_ << 13;
+    rngState_ ^= rngState_ >> 17;
+    rngState_ ^= rngState_ << 5;
+    return static_cast<float>(rngState_ >> 8) * (1.0f / 16777216.0f);
+  }
+
+  float ditherSample(float x, int ch) noexcept {
+    const int bits = controls_.ditherBits;
+    if (bits <= 0) {
+      shapeErr_[ch] = 0.0f;
+      return x;
+    }
+    const float step = 1.0f / static_cast<float>(1u << (bits - 1));
+    const float feedback = controls_.ditherShape == 1 ? shapeErr_[ch] : 0.0f;
+    const float tpdf = (rng01() + rng01() - 1.0f) * step;
+    const float target = x + feedback + tpdf;
+    const float q = std::round(target / step) * step;
+    if (controls_.ditherShape == 1) {
+      shapeErr_[ch] = (q - (x + feedback)) * 0.5f;
+    } else {
+      shapeErr_[ch] = 0.0f;
+    }
+    return std::min(std::max(q, -1.0f), 1.0f);
+  }
+
   float baseRate_ = 48000.0f;
   Controls controls_;
   MasteringEq eq_;
@@ -272,6 +358,11 @@ private:
   hdsp::Smoothed outputSmooth_;
   ebur128_state* loudness_ = nullptr;
   std::vector<float> interleave_;
+  float dryL_[kMaxDelay] = {};
+  float dryR_[kMaxDelay] = {};
+  int dryWrite_ = 0;
+  uint32_t rngState_ = 0x9e3779b9u;
+  float shapeErr_[2] = {0.0f, 0.0f};
   float corrState_ = 0.0f;
   float truePeakMax_ = -120.0f;
   float samplePeakMax_ = -120.0f;

@@ -251,7 +251,7 @@ void Panel::text(cairo_t* cr, const char* s, double x, double y, double size,
 void Panel::layout(const Shared& shared) {
   widgets_.clear();
   const int module = std::clamp(
-      static_cast<int>(shared.get(P_MODULE) + 0.5), 0, 4);
+      static_cast<int>(shared.get(P_MODULE) + 0.5), 0, 5);
 
   auto knob = [&](uint32_t param, double x, double y, double r,
                   const char* label, std::vector<const char*> scale,
@@ -324,9 +324,10 @@ void Panel::layout(const Shared& shared) {
     widgets_.push_back(r);
   }
 
-  static const char* kTabs[5] = {"EQ", "COMP", "COLOR", "DENSITY", "LIMIT"};
-  const double tabW = (980.0 - 4.0 * 8.0) / 5.0;
-  for (int i = 0; i < 5; ++i) {
+  static const char* kTabs[6] = {"EQ",    "COMP",  "COLOR",
+                                 "DENSITY", "LIMIT", "OUTPUT"};
+  const double tabW = (980.0 - 5.0 * 8.0) / 6.0;
+  for (int i = 0; i < 6; ++i) {
     Widget t{};
     t.kind = Kind::ModuleTab;
     t.param = P_MODULE;
@@ -338,15 +339,17 @@ void Panel::layout(const Shared& shared) {
     t.label = kTabs[i];
     widgets_.push_back(t);
 
-    Widget led{};
-    led.kind = Kind::ModulePower;
-    led.param = moduleOnParam(i);
-    led.value = i;
-    led.x = t.x + t.w - 24;
-    led.y = t.y + 13;
-    led.w = 14;
-    led.h = 14;
-    widgets_.push_back(led);
+    if (i < 5) {
+      Widget led{};
+      led.kind = Kind::ModulePower;
+      led.param = moduleOnParam(i);
+      led.value = i;
+      led.x = t.x + t.w - 24;
+      led.y = t.y + 13;
+      led.w = 14;
+      led.h = 14;
+      widgets_.push_back(led);
+    }
   }
 
   static const char* kMeterTabs[4] = {"SPECTRUM", "LOUDNESS", "GR", "PEAKS"};
@@ -362,6 +365,26 @@ void Panel::layout(const Shared& shared) {
     m.h = 20;
     m.label = kMeterTabs[i];
     widgets_.push_back(m);
+  }
+
+  if (static_cast<int>(shared.get(P_METER) + 0.5) == 0) {
+    Widget ref{};
+    ref.kind = Kind::RefCapture;
+    ref.x = 560;
+    ref.y = 130;
+    ref.w = 62;
+    ref.h = 20;
+    ref.label = "REF SET";
+    widgets_.push_back(ref);
+
+    Widget clear{};
+    clear.kind = Kind::RefClear;
+    clear.x = 628;
+    clear.y = 130;
+    clear.w = 56;
+    clear.h = 20;
+    clear.label = "CLR";
+    widgets_.push_back(clear);
   }
 
   if (module == 0) {
@@ -397,15 +420,25 @@ void Panel::layout(const Shared& shared) {
     knob(P_DENS_INPUT, 300, 480, 38, "IN TRIM", sc(kScaleGain));
     knob(P_DENS_EFFECT, 520, 480, 40, "DENSITY", sc(kScaleDensity));
     knob(P_DENS_OUTPUT, 740, 480, 38, "OUT TRIM", sc(kScaleGain));
-  } else {
+  } else if (module == 4) {
     knob(P_LIMIT_INPUT, 300, 480, 38, "IN GAIN", sc(kScaleGain));
     knob(P_LIMIT_CEILING, 520, 480, 38, "CEILING", sc(kScaleCeiling));
     knob(P_LIMIT_RELEASE, 740, 480, 38, "RELEASE", sc(kScaleLimitRelease));
     pill(P_LIMIT_TRUE_PEAK, 380, 570, 120, 26, "TRUE PEAK");
     cycle(P_LIMIT_OS, 540, 570, 120, 26, sc(kOsUiLabels));
+  } else {
+    static const char* const kWidthScale[] = {"0", "50", "100", "150", "200"};
+    knob(P_WIDTH, 285, 485, 42, "WIDTH", sc(kWidthScale));
+    cycle(P_MS_MODE, 500, 405, 150, 28, sc(kMsModeLabels));
+    cycle(P_DITHER_BITS, 500, 452, 150, 28, sc(kDitherBitsLabels));
+    cycle(P_DITHER_SHAPE, 500, 499, 150, 28, sc(kDitherShapeLabels));
+    cycle(P_TARGET, 500, 546, 150, 28, sc(kTargetLabels));
+    pill(P_DELTA, 692, 405, 110, 28, "DELTA");
   }
 
-  pill(moduleOnParam(module), 875, 348, 90, 26, "ON");
+  if (module < 5) {
+    pill(moduleOnParam(module), 875, 348, 90, 26, "ON");
+  }
   knob(P_INPUT, 920, 455, 26, "INPUT", sc(kScaleGain));
   knob(P_OUTPUT, 920, 560, 26, "OUTPUT", sc(kScaleGain));
 }
@@ -425,17 +458,30 @@ void Panel::draw(cairo_t* cr, Shared& shared, const PanelState& state) {
   drawLevelMeter(cr, 974, 150, 26, 380, state.outLevelL, state.outLevelR,
                  -60.0, 3.0, true);
 
-  static const char* const kCaptions[5] = {
+  static const char* const kCaptions[6] = {
       "Broad shelves, a wide mid bell, tilt and a gentle high-pass.",
       "Stereo-linked bus compressor with side-chain filter and mix.",
       "Single-band Patina colour: five models, drive, tone and level.",
       "Harmonic density and weight without adding fizz.",
-      "Five-millisecond lookahead, true-peak ceiling and up to 4x oversampling."};
+      "Five-millisecond lookahead, true-peak ceiling and up to 4x oversampling.",
+      "Stereo width, mid/side monitoring, dither and delta audition."};
   const int module =
-      std::clamp(static_cast<int>(shared.get(P_MODULE) + 0.5), 0, 4);
+      std::clamp(static_cast<int>(shared.get(P_MODULE) + 0.5), 0, 5);
   text(cr, kCaptions[module], 190, 366, 11.5, 0, 0.72, 0.76, 0.80);
   if (module == 2) {
     text(cr, "CLIP", 742, 540, 9.5, 1, 0.72, 0.76, 0.80);
+  }
+  if (module == 5) {
+    text(cr, "M/S MODE", 500, 398, 9.5, 0, 0.72, 0.76, 0.80);
+    text(cr, "DITHER", 500, 445, 9.5, 0, 0.72, 0.76, 0.80);
+    text(cr, "SHAPING", 500, 492, 9.5, 0, 0.72, 0.76, 0.80);
+    text(cr, "TARGET", 500, 539, 9.5, 0, 0.72, 0.76, 0.80);
+    char target[64];
+    std::snprintf(target, sizeof(target), "%.1f LUFS   %+.1f LU",
+                  state.targetLufs, state.targetDelta);
+    const bool match = std::fabs(state.targetDelta) <= 0.5f;
+    text(cr, target, 680, 566, 12, 0, match ? 0.40 : 0.88,
+         match ? 0.92 : 0.90, match ? 0.52 : 0.88);
   }
 
   for (const Widget& w : widgets_) drawWidget(cr, w, shared, state, 0);
@@ -687,6 +733,29 @@ void Panel::drawSpectrum(cairo_t* cr, const Shared& shared,
     cairo_stroke(cr);
     text(cr, "EQ", right, y + 18, 10, 2, 0.92, 0.58, 0.22);
   }
+
+  if (state.refActive) {
+    cairo_new_path(cr);
+    bool first = true;
+    for (int i = 0; i < kSpectrumBins; ++i) {
+      const double t = static_cast<double>(i) / (kSpectrumBins - 1);
+      const double f = 20.0 * std::pow(1000.0, t);
+      const double db =
+          std::clamp(static_cast<double>(state.refSpectrum[i]), kMinDb, kMaxDb);
+      const double px = freqToX(f, left, plotW);
+      const double py = bottom - (db - kMinDb) / (kMaxDb - kMinDb) * plotH;
+      if (first) {
+        cairo_move_to(cr, px, py);
+        first = false;
+      } else {
+        cairo_line_to(cr, px, py);
+      }
+    }
+    setRgb(cr, {0.36, 0.86, 0.94}, 0.85);
+    cairo_set_line_width(cr, 1.2);
+    cairo_stroke(cr);
+    text(cr, "REF", right, y + 31, 9.5, 2, 0.36, 0.86, 0.94);
+  }
 }
 
 void Panel::drawLoudness(cairo_t* cr, const PanelState& state,
@@ -695,6 +764,12 @@ void Panel::drawLoudness(cairo_t* cr, const PanelState& state,
   const double col1 = x + w * 0.2;
   const double col2 = x + w * 0.5;
   const double col3 = x + w * 0.8;
+  char target[64];
+  std::snprintf(target, sizeof(target), "TARGET  %.1f LUFS    %+.1f LU",
+                state.targetLufs, state.targetDelta);
+  const bool match = std::fabs(state.targetDelta) <= 0.5f;
+  text(cr, target, x + 30, y + 24, 12, 0, match ? 0.08 : 0.10,
+       match ? 0.48 : 0.10, match ? 0.20 : 0.10);
   text(cr, "INTEGRATED", col1, y + 48, 10, 1, kSkin.meterScale.r,
        kSkin.meterScale.g, kSkin.meterScale.b);
   text(cr, "SHORT-TERM", col2, y + 48, 10, 1, kSkin.meterScale.r,
@@ -982,8 +1057,23 @@ void Panel::drawWidget(cairo_t* cr, const Widget& w, const Shared& shared,
       drawPill(cr, copy, true, 0);
       break;
     }
+    case Kind::RefCapture:
+    case Kind::RefClear: {
+      const bool lit = w.kind == Kind::RefCapture && state.refActive;
+      roundRect(cr, w.x, w.y, w.w, w.h, 3);
+      setRgb(cr, lit ? kSkin.tabOn : mix(kSkin.meterFace, {1, 1, 1}, 0.06));
+      cairo_fill(cr);
+      setRgb(cr, mix(lit ? kSkin.tabOn : kSkin.meterFrame, {0, 0, 0}, 0.35),
+             0.7);
+      cairo_set_line_width(cr, 1.0);
+      roundRect(cr, w.x + 0.5, w.y + 0.5, w.w - 1, w.h - 1, 3);
+      cairo_stroke(cr);
+      const Rgb tc = lit ? kSkin.tabTextOn : Rgb{0.18, 0.21, 0.25};
+      text(cr, w.label, w.x + w.w * 0.5, w.y + w.h * 0.5 + 3.0, 7.5, 1,
+           tc.r, tc.g, tc.b);
+      break;
+    }
   }
-  (void)state;
 }
 
 void Panel::drawKnob(cairo_t* cr, const Widget& w, double value,
@@ -1107,6 +1197,10 @@ void Panel::tick(const Shared& shared, PanelState& state) const {
   state.shortTermMax = shared.shortTermMax.load();
   state.plr = shared.plr.load();
   state.psr = shared.psr.load();
+  state.targetLufs = loudnessTargetFor(
+      static_cast<int>(shared.get(P_TARGET) + 0.5));
+  state.targetDelta =
+      state.lufsI > -100.0f ? state.lufsI - state.targetLufs : 0.0f;
   for (int i = 0; i < kSpectrumBins; ++i) {
     const float target = shared.spectrum[i].load();
     state.spectrum[i] += (target - state.spectrum[i]) * 0.45f;
@@ -1182,6 +1276,15 @@ bool Panel::pointerDown(Shared& shared, PanelState& state, double x,
         return true;
       case Kind::MeterReset:
         shared.requestMeterReset();
+        return true;
+      case Kind::RefCapture:
+        for (int i = 0; i < kSpectrumBins; ++i) {
+          state.refSpectrum[i] = shared.spectrum[i].load();
+        }
+        state.refActive = true;
+        return true;
+      case Kind::RefClear:
+        state.refActive = false;
         return true;
     }
   }

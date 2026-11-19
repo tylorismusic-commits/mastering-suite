@@ -1,6 +1,6 @@
 # Mastering Suite
 
-**Status: live alpha — 0.5.1.** This is a testing build, not a final release.
+**Status: live alpha — 0.6.0.** This is a testing build, not a final release.
 Please report crashes, host compatibility issues and anything that sounds or
 meters wrong. Linux x86_64, CLAP and LV2.
 
@@ -12,7 +12,7 @@ with a self-contained loudness analyser.
 
 ## Chain
 
-`Input → EQ → Bus Compressor → Patina Color → Density → Peak Limiter → Output`
+`Input → EQ → Bus Compressor → Patina Color → Density → Peak Limiter → Output stage`
 
 - **EQ** — smooth low shelf, wide mid bell, high shelf, high-pass and a
   ±6 dB tilt. Broad, non-resonant shapes intended for mastering moves, with
@@ -29,11 +29,18 @@ with a self-contained loudness analyser.
   lookahead, true-peak safety and Off/2x/4x limiter oversampling. Latency is
   285 samples at 48 kHz and stays constant across oversampling modes and when
   the module is bypassed.
+- **Output** — stereo width from 0 to 200%, a Stereo / M-S / Mid / Side
+  monitor matrix, 16- or 24-bit TPDF dither with optional noise shaping, a
+  latency-aligned delta audition, and streaming loudness targets of -9, -14,
+  -16 or -23 LUFS with a live match offset.
+
+![Mastering Suite output page](docs/mastering-output.png)
 
 ## Typed values
 
 Right-click any knob to open a value field. Type a value with its unit, such
-as `-6 dB`, `120 Hz`, `50%`, or `Soft`; Enter commits and Escape cancels.
+as `-6 dB`, `120 Hz`, `50%`, `150%` for width, or `Soft`; Enter commits and
+Escape cancels.
 Double-click a knob to restore its value from the selected preset, or its
 factory default when no preset is active.
 
@@ -48,6 +55,10 @@ factory default when no preset is active.
 - Compressor and limiter gain reduction
 - 128-bin log FFT spectrum with the live EQ curve
 - Meter reset button for the integrated/loudness and peak-hold history
+- Reference spectrum overlay: **REF SET** stores the current spectrum and
+  **CLR** clears it
+- Streaming loudness target with a live match offset on the Loudness and
+  Output pages, turning green within ±0.5 LU
 
 The display switches between **Spectrum**, **Loudness**, **GR** and **Peaks**
 with the tabs inside the bezel. The header shows integrated LUFS at all times.

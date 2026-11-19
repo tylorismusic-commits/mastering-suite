@@ -54,6 +54,12 @@ enum ParamId : uint32_t {
   P_LIMIT_INPUT,
   P_LIMIT_OS,
   P_EQ_TILT,
+  P_WIDTH,
+  P_MS_MODE,
+  P_DITHER_BITS,
+  P_DITHER_SHAPE,
+  P_DELTA,
+  P_TARGET,
   P_COUNT
 };
 
@@ -87,8 +93,12 @@ inline constexpr const char* kRatioLabels[] = {"2:1", "4:1", "10:1"};
 inline constexpr const char* kOversampleLabels[] = {"Off", "2x", "4x"};
 inline constexpr const char* kMeterLabels[] = {"Spectrum", "Loudness", "GR",
                                                "Peaks"};
-inline constexpr const char* kModuleLabels[] = {"EQ", "Comp", "Color", "Density",
-                                                "Limit"};
+inline constexpr const char* kMsModeLabels[] = {"Stereo", "M/S", "Mid", "Side"};
+inline constexpr const char* kDitherBitsLabels[] = {"Off", "16 bit", "24 bit"};
+inline constexpr const char* kDitherShapeLabels[] = {"TPDF", "Noise Shape"};
+inline constexpr const char* kTargetLabels[] = {"-9", "-14", "-16", "-23"};
+inline constexpr const char* kModuleLabels[] = {"EQ",  "Comp",  "Color",
+                                                "Density", "Limit", "Output"};
 
 inline constexpr ParamSpec kParamSpecs[P_COUNT] = {
     {"power", "Power", "Global", 0.0, 1.0, 1.0, true, false, true, {}},
@@ -96,7 +106,7 @@ inline constexpr ParamSpec kParamSpecs[P_COUNT] = {
     {"output", "Output", "Global", 0.0, 1.0, 0.5, false, false, false, {}},
     {"meter", "Meter", "Global", 0.0, 3.0, 0.0, true, true, false,
      labels(kMeterLabels)},
-    {"module", "Module", "Global", 0.0, 4.0, 0.0, true, true, false,
+    {"module", "Module", "Global", 0.0, 5.0, 0.0, true, true, false,
      labels(kModuleLabels)},
 
     {"eq_on", "EQ On", "EQ", 0.0, 1.0, 1.0, true, false, true, {}},
@@ -159,6 +169,17 @@ inline constexpr ParamSpec kParamSpecs[P_COUNT] = {
     {"limiter_os", "Oversampling", "Limiter", 0.0, 2.0, 2.0, true, false,
      false, labels(kOversampleLabels)},
     {"eq_tilt", "Tilt", "EQ", 0.0, 1.0, 0.5, false, false, false, {}},
+
+    {"width", "Width", "Output", 0.0, 1.0, 0.5, false, false, false, {}},
+    {"ms_mode", "M/S Mode", "Output", 0.0, 3.0, 0.0, true, false, false,
+     labels(kMsModeLabels)},
+    {"dither_bits", "Dither", "Output", 0.0, 2.0, 0.0, true, false, false,
+     labels(kDitherBitsLabels)},
+    {"dither_shape", "Noise Shaping", "Output", 0.0, 1.0, 0.0, true, false,
+     false, labels(kDitherShapeLabels)},
+    {"delta", "Delta", "Output", 0.0, 1.0, 0.0, true, false, true, {}},
+    {"target", "Loudness Target", "Output", 0.0, 3.0, 1.0, true, false, false,
+     labels(kTargetLabels)},
 };
 
 static_assert(sizeof(kParamSpecs) / sizeof(kParamSpecs[0]) == P_COUNT,
@@ -190,6 +211,16 @@ inline float hpfHz(float v) noexcept {
 }
 inline float eqTiltDb(float v) noexcept {
   return -6.0f + 12.0f * clamp01(v);
+}
+// 0..1 maps to 0..200% stereo width, with 0.5 = unity.
+inline float widthAmount(float v) noexcept { return 2.0f * clamp01(v); }
+inline int ditherBitsFor(int index) noexcept {
+  static constexpr int kBits[3] = {0, 16, 24};
+  return kBits[std::min(std::max(index, 0), 2)];
+}
+inline float loudnessTargetFor(int index) noexcept {
+  static constexpr float kTargets[4] = {-9.0f, -14.0f, -16.0f, -23.0f};
+  return kTargets[std::min(std::max(index, 0), 3)];
 }
 inline float compThresholdDb(float v) noexcept {
   return -40.0f + 40.0f * clamp01(v);
@@ -387,6 +418,13 @@ inline Controls controlsFrom(const Shared& s) noexcept {
   c.limiter.release = static_cast<float>(s.get(P_LIMIT_RELEASE));
   c.limiter.truePeak = s.get(P_LIMIT_TRUE_PEAK) > 0.5;
   c.limiter.oversample = static_cast<int>(s.get(P_LIMIT_OS) + 0.5);
+
+  c.width = widthAmount(static_cast<float>(s.get(P_WIDTH)));
+  c.msMode = static_cast<int>(s.get(P_MS_MODE) + 0.5);
+  c.ditherBits = ditherBitsFor(static_cast<int>(s.get(P_DITHER_BITS) + 0.5));
+  c.ditherShape = static_cast<int>(s.get(P_DITHER_SHAPE) + 0.5);
+  c.delta = s.get(P_DELTA) > 0.5;
+  c.targetIndex = static_cast<int>(s.get(P_TARGET) + 0.5);
   return c;
 }
 

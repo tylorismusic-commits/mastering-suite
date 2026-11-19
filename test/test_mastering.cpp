@@ -431,6 +431,114 @@ int main() {
           "true-peak meter tracks a full-scale sine");
   }
 
+
+  // Output width and the M/S monitor matrix.
+  {
+    auto run = [&](float width, int mode, float& outL, float& outR) {
+      MasteringEngine e;
+      e.prepare(kSr);
+      Controls c;
+      c.limiter.enabled = false;
+      c.width = width;
+      c.msMode = mode;
+      e.setControls(c);
+      Meters m;
+      std::vector<float> l(kFrames), r(kFrames);
+      for (int b = 0; b < 8; ++b) {
+        for (int i = 0; i < kFrames; ++i) {
+          const float t = static_cast<float>(b * kFrames + i) / kSr;
+          l[i] = 0.5f * std::sin(2.0f * 3.14159265f * 200.0f * t);
+          r[i] = 0.0f;
+        }
+        e.process(l.data(), r.data(), kFrames, m);
+      }
+      outL = l[kFrames - 1];
+      outR = r[kFrames - 1];
+    };
+    float l = 0.0f, r = 0.0f;
+    run(0.0f, 0, l, r);
+    check(std::fabs(l - r) < 1.0e-4, "zero width collapses to mono");
+    run(2.0f, 0, l, r);
+    check(l > 0.4f && r < -0.1f, "double width widens the stereo image");
+    run(1.0f, 2, l, r);
+    check(std::fabs(l - r) < 1.0e-4, "mid monitor outputs the centre only");
+    run(1.0f, 3, l, r);
+    check(std::fabs(l - r) < 1.0e-4 && std::fabs(l) > 0.1f,
+          "side monitor outputs the difference only");
+  }
+
+  // Delta audition subtracts the latency-aligned dry signal.
+  {
+    MasteringEngine e;
+    e.prepare(kSr);
+    Controls c;
+    c.delta = true;
+    c.eq.enabled = false;
+    c.comp.enabled = false;
+    c.color.enabled = false;
+    c.density.enabled = false;
+    e.setControls(c);
+    Meters m;
+    std::vector<float> l(kFrames), r(kFrames);
+    float residual = 0.0f;
+    for (int b = 0; b < 40; ++b) {
+      sine(l, r, b, 0.1f, 1000.0f);
+      e.process(l.data(), r.data(), kFrames, m);
+      if (b > 20) {
+        for (int i = 0; i < kFrames; ++i) {
+          residual = std::max(residual, std::fabs(l[i]));
+          residual = std::max(residual, std::fabs(r[i]));
+        }
+      }
+    }
+    check(residual < 0.001f, "delta is silent for a transparent chain");
+  }
+
+  // 16-bit dither lands on the quantiser grid.
+  {
+    MasteringEngine e;
+    e.prepare(kSr);
+    Controls c;
+    c.limiter.enabled = false;
+    c.ditherBits = 16;
+    c.ditherShape = 1;
+    e.setControls(c);
+    Meters m;
+    std::vector<float> l(kFrames), r(kFrames);
+    for (int b = 0; b < 8; ++b) {
+      for (int i = 0; i < kFrames; ++i) {
+        l[i] = r[i] = 0.123456f;
+      }
+      e.process(l.data(), r.data(), kFrames, m);
+    }
+    bool onGrid = true;
+    for (int i = 0; i < kFrames; ++i) {
+      const double scaled = static_cast<double>(l[i]) * 32768.0;
+      if (std::fabs(scaled - std::round(scaled)) > 1.0e-3) onGrid = false;
+    }
+    check(onGrid, "16-bit dither quantises to the 32768-step grid");
+  }
+
+  // Streaming loudness target and match offset.
+  {
+    MasteringEngine e;
+    e.prepare(kSr);
+    Controls c;
+    c.limiter.enabled = false;
+    c.targetIndex = 0;  // -9 LUFS
+    e.setControls(c);
+    Meters m;
+    std::vector<float> l(kFrames), r(kFrames);
+    for (int b = 0; b < 800; ++b) {
+      sine(l, r, b, 0.5f, 1000.0f);
+      e.process(l.data(), r.data(), kFrames, m);
+    }
+    check(std::fabs(m.targetLufs + 9.0f) < 1.0e-4,
+          "target loudness follows the selector");
+    check(std::fabs(m.targetDelta - (m.lufsIntegrated - m.targetLufs)) < 1.0e-3,
+          "target match reports the delta to the measured loudness");
+  }
+
   std::printf("%d failure(s)\n", gFailures);
   return gFailures == 0 ? 0 : 1;
 }

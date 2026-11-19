@@ -312,8 +312,8 @@ int main(int argc, char** argv) {
   // The colour tab exposes Off/Soft/Hard output clipping.
   if (idle) {
     writes.events.clear();
-    sendButton(dpy, window, 520, 90, true);
-    sendButton(dpy, window, 520, 90, false);
+    sendButton(dpy, window, 437, 90, true);
+    sendButton(dpy, window, 437, 90, false);
     idle->idle(handle);
     sendButton(dpy, window, 716, 561, true);
     sendButton(dpy, window, 716, 561, false);
@@ -326,6 +326,45 @@ int main(int argc, char** argv) {
       }
     }
     check(wroteClip, "colour Soft clip writes the clip parameter");
+  }
+
+  // The output tab exposes width, delta and the loudness target.
+  if (idle) {
+    writes.events.clear();
+    sendButton(dpy, window, 931, 90, true);
+    sendButton(dpy, window, 931, 90, false);
+    idle->idle(handle);
+    sendRightClick(dpy, window, 285, 485);  // Width
+    idle->idle(handle);
+    sendKey(dpy, window, XK_1);
+    sendKey(dpy, window, XK_period);
+    sendKey(dpy, window, XK_5);
+    sendKey(dpy, window, XK_Return);
+    idle->idle(handle);
+    bool wroteWidth = false;
+    for (const Written& e : writes.events) {
+      if (e.port == mastering::kLv2FirstParam + mastering::P_WIDTH &&
+          std::fabs(e.value - 0.75f) < 1e-4f) {
+        wroteWidth = true;
+      }
+    }
+    check(wroteWidth, "typed 1.5 commits 150% width");
+
+    writes.events.clear();
+    sendButton(dpy, window, 740, 419, true);  // DELTA
+    sendButton(dpy, window, 740, 419, false);
+    idle->idle(handle);
+    check(wrotePort(writes, mastering::kLv2FirstParam + mastering::P_DELTA,
+                    1.0f),
+          "delta pill enables delta monitoring");
+
+    writes.events.clear();
+    sendButton(dpy, window, 575, 560, true);  // Target cycle
+    sendButton(dpy, window, 575, 560, false);
+    idle->idle(handle);
+    check(wrotePort(writes, mastering::kLv2FirstParam + mastering::P_TARGET,
+                    2.0f),
+          "target cycle steps to -16 LUFS");
   }
 
   // The host owns the size.  Adopting it must not bounce a resize back
