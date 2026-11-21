@@ -68,6 +68,9 @@ jobs:
             test -f "$bundle/Contents/PlugIns/MasteringSuite.clap/Contents/MacOS/MasteringSuite"
             codesign --verify --deep --verbose=2 "$bundle"
           done
+          # Without this entry macOS never registers the component.
+          plutil -p build-macos/au/MasteringSuite.component/Contents/Info.plist \
+            | grep -q AudioComponents
 
       - name: Validate AUv2 with auval
         run: |
