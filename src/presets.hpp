@@ -16,7 +16,7 @@ struct PresetValue {
 struct Preset {
   const char* name;
   const char* category;
-  PresetValue values[20];
+  PresetValue values[P_COUNT + 1];
 };
 
 inline constexpr Preset kPresets[] = {
@@ -95,6 +95,14 @@ inline constexpr Preset kPresets[] = {
      {{P_EQ_ON, 1}, {P_EQ_LOW_GAIN, 0.62f}, {P_EQ_LOW_FREQ, 0.28f},
       {P_EQ_HIGH_GAIN, 0.48f}, {P_COMP_ON, 0}, {P_COLOR_ON, 0},
       {P_DENS_ON, 0}, {P_LIMIT_ON, 1}, {P_LIMIT_CEILING, 0.95f}, {-1, 0}}},
+    {"Pop Punk Master", "User",
+     {      {0, 1.0f}, {1, 0.355f}, {2, 0.5f}, {3, 3.0f}, {4, 4.0f}, {5, 1.0f}, {6, 0.665f},
+      {7, 0.27f}, {8, 0.71f}, {9, 0.595f}, {10, 0.35f}, {11, 0.82f}, {12, 0.65f}, {13, 0.2f},
+      {14, 1.0f}, {15, 0.725f}, {16, 0.0f}, {17, 0.35f}, {18, 0.5f}, {19, 0.3f}, {20, 1.0f},
+      {21, 1.0f}, {22, 1.0f}, {23, 1.0f}, {24, 3.0f}, {25, 0.19f}, {26, 0.2f}, {27, 0.55f},
+      {28, 1.0f}, {29, 0.5f}, {30, 0.0f}, {31, 1.0f}, {32, 0.425f}, {33, 0.21f}, {34, 0.525f},
+      {35, 1.0f}, {36, 0.955f}, {37, 0.5f}, {38, 1.0f}, {39, 0.54f}, {40, 2.0f}, {41, 0.5f},
+      {42, 0.58f}, {43, 0.0f}, {44, 2.0f}, {45, 0.0f}, {46, 0.0f}, {47, 0.0f}}},
 };
 
 inline constexpr int kPresetCount =

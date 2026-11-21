@@ -19,6 +19,10 @@
     a pset:Bank ;
     rdfs:label "EQ" .
 
+<https://github.com/tylorismusic-commits/mastering-suite#bank_user>
+    a pset:Bank ;
+    rdfs:label "User" .
+
 <https://github.com/tylorismusic-commits/mastering-suite#preset_clean-master>
     a pset:Preset ;
     lv2:appliesTo <https://github.com/tylorismusic-commits/mastering-suite> ;
@@ -634,4 +638,60 @@
     [ lv2:symbol "dither_shape" ; pset:value 0 ] ,
     [ lv2:symbol "delta" ; pset:value 0 ] ,
     [ lv2:symbol "target" ; pset:value 1 ] .
+
+<https://github.com/tylorismusic-commits/mastering-suite#preset_pop-punk-master>
+    a pset:Preset ;
+    lv2:appliesTo <https://github.com/tylorismusic-commits/mastering-suite> ;
+    rdfs:label "Pop Punk Master" ;
+    rdfs:comment "User" ;
+    pset:bank <https://github.com/tylorismusic-commits/mastering-suite#bank_user> ;
+    lv2:port
+    [ lv2:symbol "power" ; pset:value 1 ] ,
+    [ lv2:symbol "input" ; pset:value 0.355 ] ,
+    [ lv2:symbol "output" ; pset:value 0.5 ] ,
+    [ lv2:symbol "meter" ; pset:value 3 ] ,
+    [ lv2:symbol "module" ; pset:value 4 ] ,
+    [ lv2:symbol "eq_on" ; pset:value 1 ] ,
+    [ lv2:symbol "eq_low_gain" ; pset:value 0.665 ] ,
+    [ lv2:symbol "eq_low_freq" ; pset:value 0.27 ] ,
+    [ lv2:symbol "eq_mid_gain" ; pset:value 0.71 ] ,
+    [ lv2:symbol "eq_mid_freq" ; pset:value 0.595 ] ,
+    [ lv2:symbol "eq_mid_q" ; pset:value 0.35 ] ,
+    [ lv2:symbol "eq_high_gain" ; pset:value 0.82 ] ,
+    [ lv2:symbol "eq_high_freq" ; pset:value 0.65 ] ,
+    [ lv2:symbol "eq_hpf" ; pset:value 0.2 ] ,
+    [ lv2:symbol "comp_on" ; pset:value 1 ] ,
+    [ lv2:symbol "comp_threshold" ; pset:value 0.725 ] ,
+    [ lv2:symbol "comp_ratio" ; pset:value 0 ] ,
+    [ lv2:symbol "comp_attack" ; pset:value 0.35 ] ,
+    [ lv2:symbol "comp_release" ; pset:value 0.5 ] ,
+    [ lv2:symbol "comp_knee" ; pset:value 0.3 ] ,
+    [ lv2:symbol "comp_sc_hpf" ; pset:value 1 ] ,
+    [ lv2:symbol "comp_mix" ; pset:value 1 ] ,
+    [ lv2:symbol "comp_auto" ; pset:value 1 ] ,
+    [ lv2:symbol "color_on" ; pset:value 1 ] ,
+    [ lv2:symbol "color_model" ; pset:value 3 ] ,
+    [ lv2:symbol "color_drive" ; pset:value 0.19 ] ,
+    [ lv2:symbol "color_character" ; pset:value 0.2 ] ,
+    [ lv2:symbol "color_tone" ; pset:value 0.55 ] ,
+    [ lv2:symbol "color_mix" ; pset:value 1 ] ,
+    [ lv2:symbol "color_level" ; pset:value 0.5 ] ,
+    [ lv2:symbol "color_clip" ; pset:value 0 ] ,
+    [ lv2:symbol "density_on" ; pset:value 1 ] ,
+    [ lv2:symbol "density_input" ; pset:value 0.425 ] ,
+    [ lv2:symbol "density_effect" ; pset:value 0.21 ] ,
+    [ lv2:symbol "density_output" ; pset:value 0.525 ] ,
+    [ lv2:symbol "limiter_on" ; pset:value 1 ] ,
+    [ lv2:symbol "limiter_ceiling" ; pset:value 0.955 ] ,
+    [ lv2:symbol "limiter_release" ; pset:value 0.5 ] ,
+    [ lv2:symbol "limiter_true_peak" ; pset:value 1 ] ,
+    [ lv2:symbol "limiter_input" ; pset:value 0.54 ] ,
+    [ lv2:symbol "limiter_os" ; pset:value 2 ] ,
+    [ lv2:symbol "eq_tilt" ; pset:value 0.5 ] ,
+    [ lv2:symbol "width" ; pset:value 0.58 ] ,
+    [ lv2:symbol "ms_mode" ; pset:value 0 ] ,
+    [ lv2:symbol "dither_bits" ; pset:value 2 ] ,
+    [ lv2:symbol "dither_shape" ; pset:value 0 ] ,
+    [ lv2:symbol "delta" ; pset:value 0 ] ,
+    [ lv2:symbol "target" ; pset:value 0 ] .
 
