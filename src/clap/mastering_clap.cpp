@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <clap/all.h>
+#include <clap/ext/configurable-audio-ports.h>
 
 #ifndef SUITE_MACOS_COCOA
 #include <X11/Xlib.h>
@@ -363,6 +364,11 @@ private:
 };
 #endif
 
+// Audio ports the configurable-ports bookkeeping covers.  The plug-in's main
+// input and output come first; the array leaves room for extra busses such as
+// a sidechain.
+constexpr uint32_t kMaxPorts = 4;
+
 struct Plugin {
   clap_plugin_t plugin{};
   const clap_host_t* host = nullptr;
@@ -373,14 +379,18 @@ struct Plugin {
   std::vector<float> monoRight;
   std::atomic<uint32_t> reportedLatency{0xffffffffu};
   std::atomic<bool> resetEngine{false};
+  // Channel width per audio port.  Logic hides a stereo-only effect on mono
+  // tracks, and clap-wrapper only learns about alternate layouts through
+  // clap.configurable-audio-ports, so the busses can be narrowed here.
+  std::atomic<uint32_t> inChannels[kMaxPorts] = {2, 2, 2, 2};
+  std::atomic<uint32_t> outChannels[kMaxPorts] = {2, 2, 2, 2};
 };
 
 const char* const kFeatures[] = {CLAP_PLUGIN_FEATURE_AUDIO_EFFECT,
                                  CLAP_PLUGIN_FEATURE_MASTERING,
                                  CLAP_PLUGIN_FEATURE_EQUALIZER,
                                  CLAP_PLUGIN_FEATURE_COMPRESSOR,
-                                 CLAP_PLUGIN_FEATURE_LIMITER,
-                                 CLAP_PLUGIN_FEATURE_STEREO, nullptr};
+                                 CLAP_PLUGIN_FEATURE_LIMITER, nullptr};
 
 const clap_plugin_descriptor_t kDescriptor = {
     CLAP_VERSION,
@@ -543,13 +553,18 @@ const clap_plugin_state_t kStateExt = {stateSave, stateLoad};
 
 uint32_t audioPortsCount(const clap_plugin_t*, bool) { return 1; }
 
-bool audioPortsInfo(const clap_plugin_t*, uint32_t index, bool isInput,
+bool audioPortsInfo(const clap_plugin_t* p, uint32_t index, bool isInput,
                     clap_audio_port_info_t* info) {
   if (index != 0) return false;
+  const Plugin* s = self(p);
+  const uint32_t channels =
+      s ? (isInput ? s->inChannels[index] : s->outChannels[index])
+              .load(std::memory_order_relaxed)
+        : 2u;
   std::memset(info, 0, sizeof(*info));
   info->id = isInput ? 0 : 1;
-  info->channel_count = 2;
-  info->port_type = CLAP_PORT_STEREO;
+  info->channel_count = channels;
+  info->port_type = channels == 1 ? CLAP_PORT_MONO : CLAP_PORT_STEREO;
   info->in_place_pair = CLAP_INVALID_ID;
   info->flags = CLAP_AUDIO_PORT_IS_MAIN;
   writeName(info->name, sizeof(info->name), isInput ? "Input" : "Output");
@@ -558,6 +573,56 @@ bool audioPortsInfo(const clap_plugin_t*, uint32_t index, bool isInput,
 
 const clap_plugin_audio_ports_t kAudioPortsExt = {audioPortsCount,
                                                   audioPortsInfo};
+
+// Mono and stereo main busses.  A host that only offers effects matching the
+// track width (Logic) hides a stereo-only plug-in on mono tracks, and
+// clap-wrapper discovers alternate layouts only through this extension: it
+// probes every width pair once per instance and advertises what the plug-in
+// accepts.  Extra busses may follow the main pair; the DSP reads channel_count
+// from the buffer, so it copes with either width.
+bool configurableCanApply(
+    const clap_plugin_t* p,
+    const clap_audio_port_configuration_request_t* requests, uint32_t count) {
+  const Plugin* s = self(p);
+  if (!s || !requests || count == 0) {
+    return false;
+  }
+  bool sawIn = false, sawOut = false;
+  uint32_t mainIn = 0, mainOut = 0;
+  for (uint32_t i = 0; i < count; ++i) {
+    const auto& r = requests[i];
+    if (r.port_index >= kMaxPorts || r.channel_count == 0 ||
+        r.channel_count > 8) {
+      return false;
+    }
+    if (r.port_index != 0) {
+      continue;  // sidechain, reference
+    }
+    (r.is_input ? mainIn : mainOut) = r.channel_count;
+    (r.is_input ? sawIn : sawOut) = true;
+  }
+  return !(sawIn && sawOut) || mainIn == mainOut;
+}
+
+bool configurableApply(const clap_plugin_t* p,
+                       const clap_audio_port_configuration_request_t* requests,
+                       uint32_t count) {
+  if (!configurableCanApply(p, requests, count)) {
+    return false;
+  }
+  Plugin* s = self(p);
+  for (uint32_t i = 0; i < count; ++i) {
+    const auto& r = requests[i];
+    auto& slot = r.is_input ? s->inChannels[r.port_index]
+                            : s->outChannels[r.port_index];
+    slot.store(r.channel_count, std::memory_order_relaxed);
+  }
+  return true;
+}
+
+const clap_plugin_configurable_audio_ports_t kConfigurablePortsExt = {
+    configurableCanApply, configurableApply};
+
 
 // --- GUI --------------------------------------------------------------------
 
@@ -771,6 +836,8 @@ const void* pluginGetExtension(const clap_plugin_t*, const char* id) {
   if (std::strcmp(id, CLAP_EXT_PARAMS) == 0) return &kParamsExt;
   if (std::strcmp(id, CLAP_EXT_STATE) == 0) return &kStateExt;
   if (std::strcmp(id, CLAP_EXT_AUDIO_PORTS) == 0) return &kAudioPortsExt;
+  if (std::strcmp(id, CLAP_EXT_CONFIGURABLE_AUDIO_PORTS) == 0)
+    return &kConfigurablePortsExt;
   if (std::strcmp(id, CLAP_EXT_GUI) == 0) return &kGuiExt;
   if (std::strcmp(id, CLAP_EXT_LATENCY) == 0) return &kLatencyExt;
   return nullptr;
