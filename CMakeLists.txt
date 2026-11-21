@@ -18,7 +18,13 @@ find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 pkg_check_modules(CAIRO REQUIRED IMPORTED_TARGET cairo)
 pkg_check_modules(FREETYPE REQUIRED IMPORTED_TARGET freetype2)
-pkg_check_modules(X11 REQUIRED IMPORTED_TARGET x11)
+option(SUITE_NO_X11 "Skip X11 editor targets (portable subset)" OFF)
+if(APPLE OR SUITE_NO_X11)
+  set(SUITE_X11 OFF)
+else()
+  pkg_check_modules(X11 REQUIRED IMPORTED_TARGET x11)
+  set(SUITE_X11 ON)
+endif()
 pkg_check_modules(LV2 REQUIRED IMPORTED_TARGET lv2)
 pkg_check_modules(LILV QUIET IMPORTED_TARGET lilv-0)
 
@@ -66,6 +72,13 @@ endif()
 # ---------------------------------------------------------------------------
 # CLAP plugin: fixed mastering chain and X11/Cairo editor.
 # ---------------------------------------------------------------------------
+set(MASTERING_RESOURCE_FILES
+  "${CMAKE_SOURCE_DIR}/assets/fonts/Jost-ExtraBold.ttf"
+  "${CMAKE_SOURCE_DIR}/assets/fonts/OFL.txt"
+  "${CMAKE_SOURCE_DIR}/LICENSE"
+  "${CMAKE_SOURCE_DIR}/THIRD_PARTY_NOTICES.md")
+
+if(SUITE_X11)
 add_library(mastering MODULE
   src/clap/mastering_clap.cpp
   src/ui/panel.cpp)
@@ -85,12 +98,6 @@ set_target_properties(mastering PROPERTIES
   SUFFIX ".clap"
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/clap")
 
-set(MASTERING_RESOURCE_FILES
-  "${CMAKE_SOURCE_DIR}/assets/fonts/Jost-ExtraBold.ttf"
-  "${CMAKE_SOURCE_DIR}/assets/fonts/OFL.txt"
-  "${CMAKE_SOURCE_DIR}/LICENSE"
-  "${CMAKE_SOURCE_DIR}/THIRD_PARTY_NOTICES.md")
-
 add_custom_target(mastering_bundle ALL
   COMMAND ${CMAKE_COMMAND} -E make_directory
           "${CMAKE_BINARY_DIR}/clap/MasteringSuite.resources"
@@ -101,6 +108,7 @@ add_custom_target(mastering_bundle ALL
 install(TARGETS mastering LIBRARY DESTINATION "${CLAP_DIR}")
 install(FILES ${MASTERING_RESOURCE_FILES}
         DESTINATION "${CLAP_DIR}/MasteringSuite.resources")
+endif()  # SUITE_X11
 
 # ---------------------------------------------------------------------------
 # LV2 plugin: same DSP and panel, plus the LV2 UI and generated TTL.
@@ -119,6 +127,7 @@ set_target_properties(mastering_lv2 PROPERTIES
   OUTPUT_NAME "mastering_suite"
   LIBRARY_OUTPUT_DIRECTORY "${LV2_BUNDLE_DIR}")
 
+if(SUITE_X11)
 add_library(mastering_lv2_ui MODULE src/ui/lv2_ui.cpp src/ui/panel.cpp)
 target_include_directories(mastering_lv2_ui PRIVATE "${CMAKE_SOURCE_DIR}/src")
 target_link_libraries(mastering_lv2_ui PRIVATE
@@ -133,6 +142,12 @@ set_target_properties(mastering_lv2_ui PROPERTIES
   PREFIX ""
   OUTPUT_NAME "mastering_suite_ui"
   LIBRARY_OUTPUT_DIRECTORY "${LV2_BUNDLE_DIR}")
+endif()  # SUITE_X11
+
+set(MASTERING_LV2_BUNDLE_DEPS mastering_lv2)
+if(SUITE_X11)
+  list(APPEND MASTERING_LV2_BUNDLE_DEPS mastering_lv2_ui)
+endif()
 
 add_custom_target(mastering_lv2_bundle ALL
   COMMAND ${CMAKE_COMMAND} -E make_directory "${LV2_BUNDLE_DIR}"
@@ -145,10 +160,14 @@ add_custom_target(mastering_lv2_bundle ALL
           "${CMAKE_SOURCE_DIR}/LICENSE"
           "${CMAKE_SOURCE_DIR}/THIRD_PARTY_NOTICES.md"
           "${LV2_BUNDLE_DIR}/"
-  DEPENDS mastering_lv2 mastering_lv2_ui)
+  DEPENDS ${MASTERING_LV2_BUNDLE_DEPS})
 
-install(TARGETS mastering_lv2 mastering_lv2_ui
+install(TARGETS mastering_lv2
         LIBRARY DESTINATION "${LV2_DIR}/mastering-suite.lv2")
+if(SUITE_X11)
+  install(TARGETS mastering_lv2_ui
+          LIBRARY DESTINATION "${LV2_DIR}/mastering-suite.lv2")
+endif()
 install(FILES
   lv2/manifest.ttl
   lv2/mastering-suite.ttl
@@ -175,6 +194,7 @@ add_test(NAME mastering_ttl
 # ---------------------------------------------------------------------------
 # Release bundles: CLAP, LV2, and a combined Linux tarball.
 # ---------------------------------------------------------------------------
+if(SUITE_X11)
 add_custom_target(dist-clap
   COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/dist"
   COMMAND ${CMAKE_COMMAND} -E tar czf
@@ -183,6 +203,7 @@ add_custom_target(dist-clap
   WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/clap"
   DEPENDS mastering_bundle
   COMMENT "Packing MasteringSuite-${PROJECT_VERSION} CLAP")
+endif()  # SUITE_X11
 
 add_custom_target(dist-lv2
   COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/dist"
@@ -193,6 +214,7 @@ add_custom_target(dist-lv2
   DEPENDS mastering_lv2_bundle
   COMMENT "Packing MasteringSuite-${PROJECT_VERSION} LV2")
 
+if(SUITE_X11)
 add_custom_target(dist
   COMMAND ${CMAKE_COMMAND} -E remove_directory
           "${CMAKE_BINARY_DIR}/dist/stage"
@@ -218,12 +240,14 @@ add_custom_target(dist
           LICENSE THIRD_PARTY_NOTICES.md README.md
   DEPENDS mastering_bundle mastering_lv2_bundle
   COMMENT "Packing MasteringSuite-${PROJECT_VERSION} Linux bundle")
+endif()  # SUITE_X11
 
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
 find_program(XVFB_RUN xvfb-run)
 find_library(XTST_LIBRARY Xtst)
+if(SUITE_X11)
 add_executable(mastering_clap_host_test test/clap_host_test.cpp)
 target_include_directories(mastering_clap_host_test PRIVATE
   "${CMAKE_SOURCE_DIR}/src" "${CMAKE_SOURCE_DIR}/third_party/clap/include")
@@ -245,6 +269,7 @@ else()
   add_test(NAME mastering_clap_host
     COMMAND mastering_clap_host_test "${CMAKE_BINARY_DIR}/clap/MasteringSuite.clap")
 endif()
+endif()  # SUITE_X11
 
 add_executable(mastering_dsp_test test/test_mastering.cpp)
 target_link_libraries(mastering_dsp_test PRIVATE mastering_ebur128)
@@ -276,6 +301,7 @@ if(LILV_FOUND)
     COMMAND mastering_lv2_host_test "${LV2_BUNDLE_DIR}")
 endif()
 
+if(SUITE_X11)
 add_executable(mastering_lv2_ui_host_test test/lv2_ui_host_test.cpp)
 target_include_directories(mastering_lv2_ui_host_test PRIVATE
   "${CMAKE_SOURCE_DIR}/src" ${PKG_CONFIG_LV2_INCLUDE_DIRS})
@@ -294,3 +320,4 @@ else()
   add_test(NAME mastering_lv2_ui_host
     COMMAND mastering_lv2_ui_host_test "${LV2_BUNDLE_DIR}")
 endif()
+endif()  # SUITE_X11
