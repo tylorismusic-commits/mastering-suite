@@ -3,10 +3,12 @@
 
 #include <clap/all.h>
 
+#ifndef SUITE_MACOS_COCOA
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <cairo-xlib.h>
+#endif
 #include <dlfcn.h>
 
 #include <algorithm>
@@ -28,7 +30,13 @@
 #include "value_text.hpp"
 #include "ui/geometry.hpp"
 #include "ui/panel.hpp"
+#ifndef SUITE_MACOS_COCOA
 #include "ui/xdnd.hpp"
+#else
+#include <memory>
+
+#include "ui/cocoa_view.hpp"
+#endif
 #include "version.hpp"
 
 namespace mastering {
@@ -45,11 +53,79 @@ std::string bundleResourceDir() {
     std::string path = info.dli_fname;
     const size_t slash = path.rfind('/');
     if (slash != std::string::npos) path = path.substr(0, slash);
+#ifdef SUITE_MACOS_COCOA
+    // Resources live in Contents/Resources, next to Contents/MacOS.
+    return path + "/../Resources/MasteringSuite.resources";
+#else
     return path + "/MasteringSuite.resources";
+#endif
   }
   return "MasteringSuite.resources";
 }
 
+#ifdef SUITE_MACOS_COCOA
+// macOS editor: the panel lives in a Cocoa NSView created by the host.
+class Editor {
+public:
+  explicit Editor(Shared& shared) : shared_(shared) {}
+
+  std::function<void()> requestFlush;
+
+  double scale() const { return scale_.load(std::memory_order_relaxed); }
+  UiSize size() const { return sizeForScale(scale()); }
+
+  void resize(double scale) {
+    scale_.store(clampScale(scale), std::memory_order_relaxed);
+    if (cocoa_) {
+      const UiSize s = size();
+      cocoa_->resize(static_cast<int>(s.width), static_cast<int>(s.height));
+    }
+  }
+
+  void resetUiState() {
+    resetUi_.store(true, std::memory_order_relaxed);
+  }
+
+  bool open(void* parent) {
+    if (!cocoa_) {
+      panel_.loadFont(bundleResourceDir());
+      cocoa_ = std::make_unique<CocoaView>();
+      cocoa_->setContent(&panel_, &shared_, &state_);
+      cocoa_->setTickHook([this] {
+        if (resetUi_.exchange(false, std::memory_order_relaxed)) {
+          state_.presetIndex = -1;
+          state_.presetDirty = false;
+          state_.presetOpen = 0;
+          state_.presetScroll = 0;
+          state_.inLevelL = state_.inLevelR = -120.0f;
+          state_.outLevelL = state_.outLevelR = -120.0f;
+          for (int i = 0; i < kSpectrumBins; ++i) {
+            state_.spectrum[i] = -120.0f;
+          }
+        }
+        if (requestFlush && shared_.anyDirty()) requestFlush();
+      });
+    }
+    if (parent) cocoa_->attach(parent);
+    return true;
+  }
+
+  void close() {
+    resetUi_.store(false, std::memory_order_relaxed);
+    cocoa_.reset();
+  }
+
+  ~Editor() { close(); }
+
+private:
+  Shared& shared_;
+  PanelState state_;
+  Panel panel_;
+  std::atomic<double> scale_{1.0};
+  std::atomic<bool> resetUi_{false};
+  std::unique_ptr<CocoaView> cocoa_;
+};
+#else
 class Editor {
 public:
   explicit Editor(Shared& shared) : shared_(shared) {}
@@ -285,6 +361,7 @@ private:
   bool quitting_ = false;
   std::thread thread_;
 };
+#endif
 
 struct Plugin {
   clap_plugin_t plugin{};
@@ -485,12 +562,21 @@ const clap_plugin_audio_ports_t kAudioPortsExt = {audioPortsCount,
 // --- GUI --------------------------------------------------------------------
 
 bool guiIsApiSupported(const clap_plugin_t*, const char* api, bool floating) {
+#ifdef SUITE_MACOS_COCOA
+  (void)floating;
+  return api && std::strcmp(api, CLAP_WINDOW_API_COCOA) == 0;
+#else
   return !floating && api && std::strcmp(api, CLAP_WINDOW_API_X11) == 0;
+#endif
 }
 
 bool guiGetPreferredApi(const clap_plugin_t*, const char** api,
                         bool* floating) {
+#ifdef SUITE_MACOS_COCOA
+  *api = CLAP_WINDOW_API_COCOA;
+#else
   *api = CLAP_WINDOW_API_X11;
+#endif
   *floating = false;
   return true;
 }
@@ -530,9 +616,13 @@ bool guiSetSize(const clap_plugin_t* p, uint32_t w, uint32_t h) {
 }
 
 bool guiSetParent(const clap_plugin_t* p, const clap_window_t* window) {
+#ifdef SUITE_MACOS_COCOA
+  return self(p)->editor.open(window->cocoa);
+#else
   return self(p)->editor.open(
       window->x11 ? reinterpret_cast<void*>(static_cast<uintptr_t>(window->x11))
                   : nullptr);
+#endif
 }
 
 bool guiSetTransient(const clap_plugin_t*, const clap_window_t*) { return false; }

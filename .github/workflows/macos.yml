@@ -1,10 +1,11 @@
 name: macOS
 
-# Compile and test the portable half of the plug-in on Apple Silicon.
+# Compile and test the plug-in on Apple Silicon.
 #
-# The CLAP and LV2 editors are still X11-only, so those targets are skipped on
-# macOS (see CMakeLists.txt).  This job proves the DSP, parameters, presets and
-# the cairo panel compile and run with AppleClang.
+# The CLAP editor is Cocoa on macOS; the LV2 UI and the CLAP host test are
+# still X11-only and are skipped there (see CMakeLists.txt).  This job proves
+# the DSP, parameters, presets and cairo panel compile, and that the CLAP
+# bundle is self-contained.
 
 on:
   push:
@@ -26,7 +27,7 @@ jobs:
 
       - name: Toolchain
         run: |
-          brew install cmake pkg-config cairo freetype lv2 lilv
+          brew install cmake pkg-config cairo freetype lv2 lilv dylibbundler
           pkg-config --modversion cairo lv2
           cmake --version | head -1
 
@@ -42,3 +43,20 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build-macos --output-on-failure
+
+      - name: Check the CLAP bundle
+        run: |
+          file build-macos/clap/MasteringSuite.clap/Contents/MacOS/MasteringSuite
+          otool -L build-macos/clap/MasteringSuite.clap/Contents/MacOS/MasteringSuite | head -12
+          if otool -L build-macos/clap/MasteringSuite.clap/Contents/MacOS/MasteringSuite | grep -q '@executable_path'; then
+            echo "bundle still references @executable_path"; exit 1
+          fi
+          codesign --verify --verbose build-macos/clap/MasteringSuite.clap
+
+      - name: Upload CLAP
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MasteringSuite-macos-clap
+          path: build-macos/clap
+          if-no-files-found: warn

@@ -70,7 +70,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 
 # ---------------------------------------------------------------------------
-# CLAP plugin: fixed mastering chain and X11/Cairo editor.
+# CLAP plugin: fixed mastering chain and cairo editor (X11 on Linux, Cocoa on
+# macOS).
 # ---------------------------------------------------------------------------
 set(MASTERING_RESOURCE_FILES
   "${CMAKE_SOURCE_DIR}/assets/fonts/Jost-ExtraBold.ttf"
@@ -78,7 +79,58 @@ set(MASTERING_RESOURCE_FILES
   "${CMAKE_SOURCE_DIR}/LICENSE"
   "${CMAKE_SOURCE_DIR}/THIRD_PARTY_NOTICES.md")
 
-if(SUITE_X11)
+if(APPLE)
+enable_language(OBJCXX)
+add_library(mastering MODULE
+  src/clap/mastering_clap.cpp
+  src/ui/panel.cpp
+  src/ui/cocoa_view.mm)
+target_include_directories(mastering PRIVATE
+  "${CMAKE_SOURCE_DIR}/src"
+  "${CMAKE_SOURCE_DIR}/third_party/clap/include"
+  ${CAIRO_INCLUDE_DIRS})
+target_compile_definitions(mastering PRIVATE SUITE_MACOS_COCOA=1)
+target_compile_options(mastering PRIVATE -fobjc-arc)
+target_link_libraries(mastering PRIVATE
+  PkgConfig::CAIRO PkgConfig::FREETYPE
+  "-framework Cocoa" "-framework CoreGraphics" "-framework QuartzCore"
+  mastering_ebur128 Threads::Threads ${CMAKE_DL_LIBS})
+target_compile_features(mastering PRIVATE cxx_std_17)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  target_compile_options(mastering PRIVATE -Wall -Wextra -fvisibility=hidden)
+endif()
+set_target_properties(mastering PROPERTIES
+  PREFIX ""
+  OUTPUT_NAME "MasteringSuite"
+  SUFFIX ".dylib"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/macos")
+
+set(MASTERING_CLAP_BUNDLE "${CMAKE_BINARY_DIR}/clap/MasteringSuite.clap")
+find_program(DYLIBBUNDLER dylibbundler)
+add_custom_target(mastering_bundle ALL
+  COMMAND ${CMAKE_COMMAND} -E remove_directory "${MASTERING_CLAP_BUNDLE}"
+  COMMAND ${CMAKE_COMMAND} -E make_directory
+          "${MASTERING_CLAP_BUNDLE}/Contents/MacOS"
+  COMMAND ${CMAKE_COMMAND} -E copy
+          "$<TARGET_FILE:mastering>"
+          "${MASTERING_CLAP_BUNDLE}/Contents/MacOS/MasteringSuite"
+  COMMAND ${CMAKE_COMMAND} -E copy
+          "${CMAKE_SOURCE_DIR}/packaging/macos/Info.plist"
+          "${MASTERING_CLAP_BUNDLE}/Contents/Info.plist"
+  COMMAND ${CMAKE_COMMAND} -E make_directory
+          "${MASTERING_CLAP_BUNDLE}/Contents/Resources/MasteringSuite.resources"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${MASTERING_RESOURCE_FILES}
+          "${MASTERING_CLAP_BUNDLE}/Contents/Resources/MasteringSuite.resources/"
+  DEPENDS mastering ${MASTERING_RESOURCE_FILES})
+if(DYLIBBUNDLER)
+  add_custom_command(TARGET mastering_bundle POST_BUILD
+    COMMAND "${DYLIBBUNDLER}" -od -b
+            -x "${MASTERING_CLAP_BUNDLE}/Contents/MacOS/MasteringSuite"
+            -d "${MASTERING_CLAP_BUNDLE}/Contents/Frameworks"
+            -p "@loader_path/../Frameworks")
+endif()
+install(DIRECTORY "${MASTERING_CLAP_BUNDLE}" DESTINATION "${CLAP_DIR}")
+elseif(SUITE_X11)
 add_library(mastering MODULE
   src/clap/mastering_clap.cpp
   src/ui/panel.cpp)
